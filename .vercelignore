@@ -8,3 +8,4 @@ test-results
 playwright-report
 docs/screenshots
 .git
+.workflow-data

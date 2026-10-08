@@ -16,3 +16,4 @@ playwright-report/
 *.log
 tsconfig.tsbuildinfo
 /.swc
+.workflow-data/
