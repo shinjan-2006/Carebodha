@@ -2,7 +2,6 @@ import { db, mode } from "./db";
 import { randomUUID } from "node:crypto";
 import { readPrivate } from "./storage";
 import { extract, ProviderFailure } from "./ai";
-import { PDFParse } from "pdf-parse";
 import { createWorker } from "tesseract.js";
 import type { ProcessingJob } from "@prisma/client";
 export async function claimJob() {
@@ -21,7 +20,10 @@ async function parseDocument(id:string) {
   if(!text && d.storageKey) {
     const bytes=await readPrivate(d.storageKey);
     if(d.mimeType==="application/pdf") {
-      const parser=new PDFParse({data:bytes});
+      const {CanvasFactory,getData}=await import("pdf-parse/worker");
+      const {PDFParse}=await import("pdf-parse");
+      PDFParse.setWorker(getData());
+      const parser=new PDFParse({data:bytes,CanvasFactory});
       try {const parsed=await parser.getText({pageJoiner:""});text=parsed.text.trim();pages=parsed.pages;} finally {await parser.destroy();}
       if(!text || text.length<10) throw new ProviderFailure("PDF_TEXT_UNAVAILABLE_MANUAL_ENTRY_REQUIRED");
     } else {

@@ -11,6 +11,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: 3.1147.0
         version: 3.1147.0
+      '@napi-rs/canvas':
+        specifier: 0.1.80
+        version: 0.1.80
       '@prisma/client':
         specifier: 6.19.0
         version: 6.19.0(prisma@6.19.0(typescript@7.0.2))(typescript@7.0.2)
