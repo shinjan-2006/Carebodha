@@ -1,0 +1,8 @@
+FICTIONAL TRAINING PRESCRIPTION — NOT FOR REAL PATIENT CARE. Training medicines do not exist. Approval in this fixture is a simulated test-doctor action, not a medical professional's endorsement.
+Patient: TEST — Ravi Sen (patient.ravi@carebodha.test)
+Test doctor: TEST — Dr Arjun Sen (dr.arjun@carebodha.test)
+Scenario: Recovery and follow-up
+
+SIMULATION ONLY: TRAINING TABLET B, 1 tablet, oral, twice daily, after breakfast and after dinner, for 5 days. Do not take this fictional medicine.
+Write down a question for the fictional follow-up visit. Do not change or follow a real treatment based on this sample.
+SIMULATION ONLY: Practice follow-up on 2026-10-23 at 10:00 Asia/Kolkata. This is not a real appointment.

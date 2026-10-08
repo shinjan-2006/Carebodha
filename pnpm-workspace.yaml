@@ -1,0 +1,28 @@
+allowBuilds:
+  '@embedded-postgres/windows-x64': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@swc/core': true
+  cbor-extract: true
+  esbuild: true
+  prisma: true
+  tesseract.js: true
+minimumReleaseAgeExclude:
+  - '@workflow/astro@5.0.3'
+  - '@workflow/builders@5.0.3'
+  - '@workflow/cli@5.0.3'
+  - '@workflow/core@5.2.0'
+  - '@workflow/errors@5.0.3'
+  - '@workflow/nest@5.1.1'
+  - '@workflow/next@5.0.3'
+  - '@workflow/nitro@5.0.3'
+  - '@workflow/nuxt@5.0.3'
+  - '@workflow/rollup@5.0.3'
+  - '@workflow/sveltekit@5.0.3'
+  - '@workflow/swc-plugin@5.0.1'
+  - '@workflow/vite@5.0.3'
+  - '@workflow/web@5.0.3'
+  - '@workflow/world-local@5.1.0'
+  - '@workflow/world-vercel@5.2.0'
+  - '@workflow/world@5.0.3'
+  - workflow@5.2.0

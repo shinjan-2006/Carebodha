@@ -4,6 +4,10 @@
 
 A working Next.js application with patient, clinician, and family workspaces, PostgreSQL persistence, email/password sign-in without OTP, private document storage, and a separate PostgreSQL-backed worker. The default normal environment starts with empty accounts and supports clinician-led processing of real source documents without a paid AI key. Optional AI credentials enable automated drafting and comparison.
 
+On Vercel, the app uses hosted PostgreSQL, private Vercel Blob storage, and durable Workflow jobs instead of local disk and a separate worker. Authenticated direct uploads retain the 10 MB file limit. Document extraction only creates drafts; clinician review and approval are still required. Scheduled reminder workflows check cancellation and the current approved plan before creating notifications.
+
+The Vercel build applies database migrations and initializes a normal environment guard. Configure `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `APP_MODE=normal`, `AI_PROVIDER=manual`, `OCR_ENABLED=false`, `STORAGE_DRIVER=vercel-blob`, and the connected private Blob store credential. An optional sensitive `HOSTED_TEST_CLINICIANS` value provisions up to three operator-controlled, explicitly fictional `TEST —` accounts; it cannot grant roles through registration. Never commit environment files, credentials, uploaded medical documents, or database exports.
+
 English, Hindi, Bengali, Odia, Telugu, Punjabi, and Tamil are available in the visible language selector. Navigation and sign-in labels change language; approved care text uses reviewed translations. When a selected translation is unavailable, the app explicitly shows the approved English text rather than presenting it as a translation.
 
 The UI follows Matter Immersive's pearl surfaces, oversized Archivo headings, blue italic Instrument Serif, thin editorial rules, and segmented glass ribbon. See [design notes](docs/DESIGN.md) and [verification evidence](docs/VERIFICATION.md) for the redesign's source, screen coverage, and checks.

@@ -1,0 +1,48 @@
+"use client";
+import {useState,useEffect} from "react";
+import {authClient} from "@/lib/auth-client";
+import {normalizeUsername,usernamePattern} from "@/lib/usernames";
+import {Brand} from "./brand";
+import Link from "next/link";
+import {ShieldCheck,Users,Stethoscope,Heart,Eye,EyeOff} from "lucide-react";
+import {LanguageSwitch,useLanguage} from "./language-provider";
+export default function AuthScreen({demoPassword,register=false,expert=false}:{demoPassword?:string;register?:boolean;expert?:boolean}) {
+  const {t,language}=useLanguage();
+  const [email,setEmail]=useState("");const [password,setPassword]=useState("");const [name,setName]=useState("");const [username,setUsername]=useState("");
+  const [busy,setBusy]=useState(false);const [error,setError]=useState("");const [visible,setVisible]=useState(false);
+  useEffect(()=>{const role=new URLSearchParams(window.location.search).get("demo");if(demoPassword && ["patient","clinician","family"].includes(role || "")){setEmail(`${role}@carebodha.demo`);setPassword(demoPassword);}},[demoPassword]);
+  async function submit(e:React.FormEvent) {
+    e.preventDefault();setBusy(true);setError("");
+    try {
+      const identifier=email.trim();const chosenUsername=normalizeUsername(username);
+      if(register && chosenUsername && !usernamePattern.test(chosenUsername))throw new Error("Choose a username of 3–30 letters, numbers, or underscores.");
+      const result=register?await authClient.signUp.email({email:identifier,password,name,...(chosenUsername?{username:chosenUsername}:{})}):identifier.includes("@")?await authClient.signIn.email({email:identifier,password}):await authClient.signIn.username({username:normalizeUsername(identifier),password});
+      if(result.error){setError(result.error.status===429?"Too many sign-in attempts. Please wait a moment and try again.":register?"Please check your details. That email or username may already be in use. Passwords require at least 12 characters.":"Please check your email or username and CareBodha password.");return;}
+      if(expert){
+        const response=await fetch("/api/v1/workspace",{cache:"no-store"});const account=await response.json();
+        if(!response.ok || account.data?.user.role!=="CLINICIAN"){await authClient.signOut();throw new Error("This account does not have medical-expert access. Use patient sign-in, or ask your administrator to enable an expert account.");}
+      }
+      if(register)await fetch("/api/v1/settings",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({language,timezone:"Asia/Kolkata",largeText:false})}).catch(()=>{});
+      const token=new URLSearchParams(window.location.search).get("token");window.location.href=expert?"/expert":token?`/invite?token=${encodeURIComponent(token)}`:"/app";
+    }catch(e){setError(e instanceof Error?e.message:"Sign-in is unavailable. Please try again.");}finally{setBusy(false);}
+  }
+  return <main id="main" className="auth-page">
+    <div className="auth-brand"><Brand/><LanguageSwitch/></div>
+    <div className="auth-story"><div className="eyebrow">{expert?"THE MEDICAL EXPERT DESK":"YOUR CARE, MADE CLEAR"}</div><h1>{expert?"CARE STARTS HERE.":"YOUR CARE."}<br/><span>{expert?"With you.":"Made clear."}</span></h1><p>{expert?"Connect with your patients, review their source instructions, and publish care they can understand.":"Understand the instructions your doctor approved, in the language that feels like yours."}</p><div className="auth-sculpture" aria-hidden="true">{Array.from({length:18},(_,i)=><i key={i} style={{transform:`rotate(${i*4-35}deg)`}}/>)}</div><span><ShieldCheck size={18}/>{expert?"Reviewed instructions. Connected care.":"Your care plan is the source. You’re in control."}</span></div>
+    <section className="auth-card">
+      {!register && <nav className="auth-audience" aria-label="Sign-in options"><Link href="/signin" aria-current={!expert?"page":undefined}><Heart size={16}/>Patient / family</Link><Link href="/expert/signin" aria-current={expert?"page":undefined}><Stethoscope size={16}/>Medical expert</Link></nav>}
+      <span className="eyebrow">{expert?"AUTHORIZED CARE TEAM":t("welcome")}</span><h2>{expert?"Medical expert sign-in":register?"Create your account":"Good to see you."}</h2><p>{expert?"Sign in to connect a patient and assign reviewed care.":register?"Register as a patient. Family access comes through a patient invitation.":"Sign in to understand your next step."}</p>
+      {demoPassword && !register && <div className="demo-accounts"><span className="micro-label">EXPLORE WITH FICTIONAL ACCOUNTS</span><div>{[{key:"patient",icon:Heart},{key:"clinician",icon:Stethoscope},{key:"family",icon:Users}].filter(d=>!expert || d.key==="clinician").map(d=><button key={d.key} type="button" onClick={()=>{setEmail(`${d.key}@carebodha.demo`);setPassword(demoPassword);}}><d.icon size={18}/>{d.key}</button>)}</div><small>Real sign-in, permissions, and persistent records. Fictional demo data only.</small></div>}
+      <p className="signin-note">{register?"Your email and CareBodha password. No email OTP.":"Your email or username and CareBodha password. No email OTP."}</p>
+      <form onSubmit={submit}>
+        {register && <><label>{t("name")}<input autoComplete="name" required value={name} onChange={e=>setName(e.target.value)}/></label><label>Username (optional)<input aria-label="Username" autoComplete="username" pattern="[a-zA-Z0-9_]{3,30}" maxLength={30} placeholder="e.g. asha_sharma" value={username} onChange={e=>setUsername(e.target.value)}/></label><p className="field-help">3–30 letters, numbers, or underscores. Share this or your email with your medical expert.</p></>}
+        <label>{register?t("email"):"Email or username"}<input placeholder={expert?"doctor@hospital.org or dr_sharma":"you@gmail.com"} type={register?"email":"text"} autoComplete={register?"email":"username"} required value={email} onChange={e=>setEmail(e.target.value)}/></label>
+        <label>{t("password")}<div className="password-field"><input type={visible?"text":"password"} aria-label="Password" minLength={12} maxLength={128} autoComplete={register?"new-password":"current-password"} required value={password} onChange={e=>setPassword(e.target.value)}/><button type="button" aria-label={visible?"Hide password":"Show password"} onClick={()=>setVisible(!visible)}>{visible?<EyeOff size={18}/>:<Eye size={18}/>}</button></div></label>
+        {error && <div className="alert red" role="alert">{error}</div>}<button className="button primary full" disabled={busy || !email || password.length<12 || (register && !name.trim())}>{busy?"Please wait…":expert?"Sign in as medical expert":register?t("register"):t("signin")}</button>
+      </form>
+      {expert?<p className="expert-access-note"><ShieldCheck size={18}/>Medical-expert accounts are enabled by your CareBodha administrator. Patient registration does not grant expert access.</p>:<p className="auth-switch">{register?"Already have an account?":"New to CareBodha?"} <Link href={register?"/signin":"/register"}>{register?"Sign in":"Create an account"}</Link></p>}
+      {register && <Link className="text-link" href="/expert/signin">Medical expert sign-in →</Link>}
+      <Link className="back-link" href="/">Back to CareBodha</Link>
+    </section>
+  </main>;
+}

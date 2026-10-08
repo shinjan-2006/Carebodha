@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.local-*
+node_modules
+private-storage*
+test-results
+playwright-report
+docs/screenshots
+.git

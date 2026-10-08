@@ -1,0 +1,8 @@
+FICTIONAL TRAINING PRESCRIPTION — NOT FOR REAL PATIENT CARE. Training medicines do not exist. Approval in this fixture is a simulated test-doctor action, not a medical professional's endorsement.
+Patient: TEST — Meera Das (patient.meera@carebodha.test)
+Test doctor: TEST — Dr Meera Rao (dr.meera@carebodha.test)
+Scenario: Daily care check-in
+
+SIMULATION ONLY: TRAINING TABLET C, 1 tablet, oral, once daily, after dinner, for 3 days. Do not take this fictional medicine.
+Share your understanding using teach-back, then ask the test doctor about any unclear detail. This sample is not a real prescription.
+SIMULATION ONLY: Practice follow-up on 2026-10-23 at 10:00 Asia/Kolkata. This is not a real appointment.

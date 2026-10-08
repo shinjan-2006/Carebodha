@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  username String? @unique
+  emailVerified Boolean @default(false)
+  image String?
+  role String @default("PATIENT")
+  dataMode String @default("normal")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions Session[]
+  accounts Account[]
+  profile PatientProfile?
+  assignments ClinicianPatientAssignment[]
+  grants FamilyAccessGrant[]
+  attempts TeachBackAttempt[]
+  requests ClarificationRequest[] @relation("RequestedClarifications")
+  responses ClarificationRequest[] @relation("RespondedClarifications")
+  notifications Notification[]
+  approvals ApprovalRecord[]
+  audit AuditEvent[]
+  documents Document[]
+  reminders Reminder[] @relation("CreatedReminders")
+  reportedReminders Reminder[] @relation("ReportedReminders")
+}
+model Session {
+  id String @id @default(cuid())
+  expiresAt DateTime
+  token String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  @@index([userId])
+}
+model Account {
+  id String @id @default(cuid())
+  accountId String
+  providerId String
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  accessToken String?
+  refreshToken String?
+  idToken String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope String?
+  password String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+model Verification {
+  id String @id @default(cuid())
+  identifier String
+  value String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([identifier])
+}
+model PatientProfile {
+  id String @id @default(cuid())
+  userId String @unique
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  language String @default("en")
+  timezone String @default("Asia/Kolkata")
+  largeText Boolean @default(false)
+  assignments ClinicianPatientAssignment[]
+  plans CarePlan[]
+  documents Document[]
+  invitations FamilyInvitation[]
+  grants FamilyAccessGrant[]
+}
+model ClinicianPatientAssignment {
+  id String @id @default(cuid())
+  clinicianId String
+  clinician User @relation(fields:[clinicianId], references:[id])
+  patientId String
+  patient PatientProfile @relation(fields:[patientId], references:[id])
+  createdAt DateTime @default(now())
+  @@unique([clinicianId, patientId])
+}
+model Document {
+  id String @id @default(cuid())
+  patientId String
+  patient PatientProfile @relation(fields:[patientId], references:[id])
+  uploadedById String
+  uploadedBy User @relation(fields:[uploadedById], references:[id])
+  name String
+  mimeType String
+  storageKey String?
+  sourceText String?
+  status String @default("QUEUED")
+  errorCode String?
+  createdAt DateTime @default(now())
+  jobs ProcessingJob[]
+  versions CarePlanVersion[]
+  @@index([patientId, createdAt])
+}
+model ProcessingJob {
+  id String @id @default(cuid())
+  documentId String?
+  document Document? @relation(fields:[documentId], references:[id])
+  kind String
+  idempotencyKey String @unique
+  status String @default("QUEUED")
+  attempts Int @default(0)
+  runAt DateTime @default(now())
+  leaseUntil DateTime?
+  leaseToken String?
+  errorCode String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, runAt, leaseUntil])
+}
+model CarePlan {
+  id String @id @default(cuid())
+  patientId String
+  patient PatientProfile @relation(fields:[patientId], references:[id])
+  title String
+  dataMode String
+  approvedVersionId String? @unique
+  approvedVersion CarePlanVersion? @relation("Published", fields:[approvedVersionId], references:[id])
+  versions CarePlanVersion[] @relation("Versions")
+  createdAt DateTime @default(now())
+  @@index([patientId])
+}
+model CarePlanVersion {
+  id String @id @default(cuid())
+  planId String
+  plan CarePlan @relation("Versions", fields:[planId], references:[id])
+  publishedFor CarePlan? @relation("Published")
+  number Int
+  status String @default("DRAFT")
+  documentId String?
+  document Document? @relation(fields:[documentId], references:[id])
+  method String
+  createdAt DateTime @default(now())
+  approvedAt DateTime?
+  instructions CareInstruction[]
+  approvals ApprovalRecord[]
+  attempts TeachBackAttempt[]
+  findings TeachBackFinding[]
+  @@unique([planId, number])
+  @@index([status])
+}
+model CareInstruction {
+  id String @id @default(cuid())
+  versionId String
+  version CarePlanVersion @relation(fields:[versionId], references:[id])
+  kind String
+  title String
+  medicationName String?
+  dose String?
+  unit String?
+  route String?
+  frequency String?
+  timing String?
+  duration String?
+  followUpAt DateTime?
+  sourcePassage String
+  sourceLocation String?
+  reviewState String @default("DRAFT")
+  sourceUnclear Boolean @default(false)
+  explanations InstructionExplanation[]
+  attempts TeachBackAttempt[]
+  requests ClarificationRequest[]
+  reminders Reminder[]
+  findings TeachBackFinding[]
+  @@index([versionId, reviewState])
+}
+model InstructionExplanation {
+  id String @id @default(cuid())
+  instructionId String
+  instruction CareInstruction @relation(fields:[instructionId], references:[id])
+  language String
+  text String
+  status String @default("DRAFT")
+  sourceFields String[]
+  method String
+  @@unique([instructionId, language])
+}
+model ApprovalRecord {
+  id String @id @default(cuid())
+  versionId String
+  version CarePlanVersion @relation(fields:[versionId], references:[id])
+  clinicianId String
+  clinician User @relation(fields:[clinicianId], references:[id])
+  createdAt DateTime @default(now())
+}
+model TeachBackAttempt {
+  id String @id @default(cuid())
+  versionId String
+  version CarePlanVersion @relation(fields:[versionId], references:[id])
+  instructionId String
+  instruction CareInstruction @relation(fields:[instructionId], references:[id])
+  answeredById String
+  answeredBy User @relation(fields:[answeredById], references:[id])
+  personType String
+  transcript String
+  inputMode String
+  transcriptConfirmed Boolean
+  method String
+  status String
+  createdAt DateTime @default(now())
+  findings TeachBackFinding[]
+  @@index([instructionId, createdAt])
+}
+model TeachBackFinding {
+  id String @id @default(cuid())
+  attemptId String
+  attempt TeachBackAttempt @relation(fields:[attemptId], references:[id])
+  instructionId String
+  instruction CareInstruction @relation(fields:[instructionId],references:[id])
+  planVersionId String
+  planVersion CarePlanVersion @relation(fields:[planVersionId],references:[id])
+  fieldName String
+  approvedValue String
+  statedValue String
+  supportingQuote String
+  status String
+  explanation String
+  clarification String
+  @@index([attemptId])
+}
+model FamilyInvitation {
+  id String @id @default(cuid())
+  patientId String
+  patient PatientProfile @relation(fields:[patientId], references:[id])
+  email String
+  tokenHash String @unique
+  permissions String[]
+  expiresAt DateTime
+  acceptedAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([patientId])
+}
+model FamilyAccessGrant {
+  id String @id @default(cuid())
+  patientId String
+  patient PatientProfile @relation(fields:[patientId], references:[id])
+  familyId String
+  family User @relation(fields:[familyId], references:[id])
+  permissions String[]
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([patientId, familyId])
+}
+model ClarificationRequest {
+  id String @id @default(cuid())
+  instructionId String
+  instruction CareInstruction @relation(fields:[instructionId], references:[id])
+  requestedById String
+  requestedBy User @relation("RequestedClarifications", fields:[requestedById], references:[id])
+  question String
+  response String?
+  respondedById String?
+  respondedBy User? @relation("RespondedClarifications",fields:[respondedById],references:[id])
+  status String @default("OPEN")
+  createdAt DateTime @default(now())
+  resolvedAt DateTime?
+  @@index([status, createdAt])
+}
+model Reminder {
+  id String @id @default(cuid())
+  instructionId String
+  instruction CareInstruction @relation(fields:[instructionId], references:[id])
+  createdById String
+  createdBy User @relation("CreatedReminders",fields:[createdById], references:[id])
+  scheduledAt DateTime
+  timezone String
+  status String @default("SCHEDULED")
+  notifiedAt DateTime?
+  reportedCompletedAt DateTime?
+  reportedById String?
+  reportedBy User? @relation("ReportedReminders",fields:[reportedById],references:[id])
+  notifications Notification[]
+  @@index([status, scheduledAt])
+}
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  reminderId String?
+  reminder Reminder? @relation(fields:[reminderId], references:[id])
+  dedupeKey String @unique
+  title String
+  body String
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
+model AuditEvent {
+  id String @id @default(cuid())
+  actorId String
+  actor User @relation(fields:[actorId], references:[id])
+  action String
+  resourceId String
+  createdAt DateTime @default(now())
+  @@index([resourceId, createdAt])
+}
+model RateLimit {
+  id String @id @default(cuid())
+  key String @unique
+  count Int
+  lastRequest Float
+}
+model EnvironmentGuard {
+  id String @id
+  mode String
+}

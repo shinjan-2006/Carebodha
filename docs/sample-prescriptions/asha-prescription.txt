@@ -1,0 +1,8 @@
+FICTIONAL TRAINING PRESCRIPTION — NOT FOR REAL PATIENT CARE. Training medicines do not exist. Approval in this fixture is a simulated test-doctor action, not a medical professional's endorsement.
+Patient: TEST — Asha Sharma (patient.asha@carebodha.test)
+Test doctor: TEST — Dr Ananya Sharma (dr.ananya@carebodha.test)
+Scenario: Medication routine
+
+SIMULATION ONLY: TRAINING TABLET A, 1 tablet, oral, once daily, after breakfast, for 7 days. Do not take this fictional medicine.
+Record a practice reminder in CareBodha. This is a fictional exercise; do not take any medicine.
+SIMULATION ONLY: Practice follow-up on 2026-10-23 at 10:00 Asia/Kolkata. This is not a real appointment.

@@ -1,0 +1,6 @@
+import {handleUpload,type HandleUploadBody} from "@vercel/blob/client";
+import {actor,sameOrigin,limit} from "@/lib/security";
+import {uploadMetadata} from "@/lib/blob-documents";
+import {safeError} from "@/lib/services";
+export const runtime="nodejs";
+export async function POST(request:Request){try{sameOrigin(request);const user=await actor(request.headers);await limit(user,"blob-upload");if(process.env.STORAGE_DRIVER!=="vercel-blob")return Response.json({error:{message:"Direct uploads are unavailable."}},{status:409});if(Number(request.headers.get("content-length")||0)>8000)return new Response(null,{status:413});const body=await request.json() as HandleUploadBody;if(body.type!=="blob.generate-client-token")return new Response(null,{status:400});const result=await handleUpload({request,body,onBeforeGenerateToken:async(pathname,clientPayload)=>{const metadata=await uploadMetadata(user,clientPayload||"");if(pathname!==metadata.key)throw new Error("INVALID_UPLOAD_PATH");return{allowedContentTypes:[metadata.mimeType],maximumSizeInBytes:10*1024*1024,validUntil:metadata.expiresAt,addRandomSuffix:false,allowOverwrite:false};}});return Response.json(result);}catch(error){const result=safeError(error);return Response.json({error:result.error},{status:result.status});}}
