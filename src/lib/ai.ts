@@ -1,3 +1,4 @@
+import {medicationTranslationDraft} from "./medication-translation";
 import { extractionSchema, sourceGrounded, clinicalFields, type ExtractedInstruction, type InstructionForCheck } from "./contracts";
 import { deterministicComparison, validateComparison, checkedFields } from "./teachback";
 import {languageInfo,type Language} from "./languages";
@@ -67,7 +68,7 @@ export async function compare(i: InstructionForCheck, answer: string) {
   try { return {findings:validateComparison(raw,i,answer),method:"live AI"}; } catch { throw new ProviderFailure("INVALID_AI_OUTPUT"); }
 }
 export async function draftExplanation(i: ExtractedInstruction, language: Language) {
-  if(process.env.AI_PROVIDER==="manual" && process.env.APP_MODE!=="demo")return {text:language==="en"?i.sourcePassage:"",method:"clinician entry",sourceFields:clinicalFields.filter(f=>i[f])};
+  if(process.env.AI_PROVIDER==="manual" && process.env.APP_MODE!=="demo")return {text:medicationTranslationDraft(i,language),method:i.kind==="MEDICATION" && language!=="en"?"source phrase draft — clinician review required":"clinician entry",sourceFields:clinicalFields.filter(f=>i[f])};
   if(isDemo()) {
     if(!["en","hi"].includes(language))return {text:"",method:"clinician entry",sourceFields:clinicalFields.filter(f=>i[f])};
     const hindi = i.kind === "MEDICATION" ? `${i.medicationName} की एक गोली ${i.frequency === "twice daily" ? "दिन में दो बार" : "दिन में एक बार"} खाने के बाद लें।` : i.kind === "FOLLOW_UP" ? `आपकी देखभाल टीम की अगली मुलाकात: ${i.sourcePassage.replace("Follow-up: care team review on ","")}।` : i.kind === "CONTACT" ? "इन निर्देशों के बारे में प्रश्न होने पर अपनी देखभाल टीम से संपर्क करें।" : i.sourcePassage.startsWith("Bring your") ? "अपनी अगली मुलाकात में अपनी स्वीकृत देखभाल योजना साथ लाएँ।" : i.sourcePassage.startsWith("Keep the care-team") ? "अपनी स्वीकृत योजना के साथ देखभाल टीम की संपर्क जानकारी रखें।" : i.sourcePassage;

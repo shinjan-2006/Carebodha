@@ -114,7 +114,7 @@ export async function generateExplanations(user:Actor,id:string) {
   if(!v.instructions.length||v.instructions.some(i=>i.reviewState!=="REVIEWED" || i.sourceUnclear)) throw new HttpError(409,"REVIEW_REQUIRED","Review the extracted fields and resolve unclear sources first.");
   const drafts: {instructionId:string;language:Language;text:string;method:string;sourceFields:string[]}[]=[];
   for(const i of v.instructions) for(const language of languageCodes) {
-    if(i.explanations.some(e=>e.language===language))continue;
+    if(i.explanations.some(e=>e.language===language && (e.text.trim() || e.status!=="DRAFT")))continue;
     const normalized=instructionSchema.parse({...Object.fromEntries(Object.keys(instructionSchema.shape).map(k=>[k,k==="followUpAt"?i.followUpAt?.toISOString() || null:i[k as keyof typeof i]]))});
     drafts.push({instructionId:i.id,language,...await draftExplanation(normalized,language)});
   }
@@ -126,8 +126,10 @@ export async function generateExplanations(user:Actor,id:string) {
       const existing=await tx.instructionExplanation.findUnique({where:{instructionId_language:{instructionId:d.instructionId,language:d.language}}});
       // Generation is separate from review: retain saved translations and their
       // review state instead of erasing them when the button is clicked again.
-      if(existing)continue;
-      await tx.instructionExplanation.create({data:{...d,status:"DRAFT"}});
+      if(existing){
+        if(existing.status!=="DRAFT" || existing.text.trim() || !d.text.trim())continue;
+        await tx.instructionExplanation.update({where:{id:existing.id},data:{text:d.text,method:d.method,sourceFields:d.sourceFields}});
+      }else await tx.instructionExplanation.create({data:{...d,status:"DRAFT"}});
       generated++;
     }
     await tx.auditEvent.create({data:audit(user.id,"EXPLANATIONS_DRAFTED",id)}); return {generated};
