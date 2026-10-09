@@ -505,7 +505,8 @@
     "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "মূল উৎস থেকে নতুন খসড়া তৈরি করুন। আগের পরিবর্তনগুলি পূর্ববর্তী সংস্করণে থাকবে; নতুন খসড়া যাচাই করা প্রয়োজন।",
     "Extract source into a new draft": "উৎস থেকে নতুন খসড়া তৈরি করুন",
     "source field extraction v1": "উৎস তথ্য নিষ্কাশন v1",
-    "source field extraction v2": "উৎস তথ্য নিষ্কাশন v2"
+    "source field extraction v2": "উৎস তথ্য নিষ্কাশন v2",
+    "source field extraction v3": "উৎস তথ্য নিষ্কাশন v3"
   },
   "hi": {
     ". Files stay private and require authorized access.": ". फ़ाइलें निजी रहती हैं और अधिकृत पहुंच की आवश्यकता होती है।",
@@ -1013,7 +1014,8 @@
     "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "मूल स्रोत से नया मसौदा बनाएं। मौजूदा बदलाव पिछले संस्करण में सुरक्षित रहेंगे; नए मसौदे की समीक्षा आवश्यक है।",
     "Extract source into a new draft": "स्रोत से नया मसौदा बनाएं",
     "source field extraction v1": "स्रोत जानकारी निष्कर्षण v1",
-    "source field extraction v2": "स्रोत जानकारी निष्कर्षण v2"
+    "source field extraction v2": "स्रोत जानकारी निष्कर्षण v2",
+    "source field extraction v3": "स्रोत जानकारी निष्कर्षण v3"
   },
   "or": {
     ". Files stay private and require authorized access.": ". ଫାଇଲ୍ଗୁଡିକ ଗୋପନୀୟ ରହିଥାଏ ଏବଂ ଅନୁମୋଦିତ ପ୍ରବେଶ ଆବଶ୍ୟକ।",
@@ -1521,7 +1523,8 @@
     "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "ମୂଳ ଉତ୍ସରୁ ନୂଆ ଖସଡ଼ା ତିଆରି କରନ୍ତୁ। ପୂର୍ବ ପରିବର୍ତ୍ତନଗୁଡ଼ିକ ପୁରୁଣା ସଂସ୍କରଣରେ ସୁରକ୍ଷିତ ରହିବ; ନୂଆ ଖସଡ଼ା ଯାଞ୍ଚ ଆବଶ୍ୟକ।",
     "Extract source into a new draft": "ଉତ୍ସରୁ ନୂଆ ଖସଡ଼ା ତିଆରି କରନ୍ତୁ",
     "source field extraction v1": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v1",
-    "source field extraction v2": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v2"
+    "source field extraction v2": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v2",
+    "source field extraction v3": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v3"
   },
   "pa": {
     ". Files stay private and require authorized access.": ". ਫਾਈਲਾਂ ਨਿੱਜੀ ਹੀ ਰਹਿੰਦੀਆਂ ਹਨ ਅਤੇ ਅਧਿਕ੍ਰਿਤ ਪਹੁੰਚ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।",
@@ -2029,7 +2032,8 @@
     "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "ਮੂਲ ਸਰੋਤ ਤੋਂ ਨਵਾਂ ਖਰੜਾ ਬਣਾਓ। ਮੌਜੂਦਾ ਤਬਦੀਲੀਆਂ ਪਿਛਲੇ ਸੰਸਕਰਣ ਵਿੱਚ ਸੰਭਾਲੀਆਂ ਰਹਿਣਗੀਆਂ; ਨਵੇਂ ਖਰੜੇ ਦੀ ਸਮੀਖਿਆ ਲੋੜੀਂਦੀ ਹੈ।",
     "Extract source into a new draft": "ਸਰੋਤ ਤੋਂ ਨਵਾਂ ਖਰੜਾ ਬਣਾਓ",
     "source field extraction v1": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v1",
-    "source field extraction v2": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v2"
+    "source field extraction v2": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v2",
+    "source field extraction v3": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v3"
   },
   "ta": {
     ". Files stay private and require authorized access.": ". கோப்புகள் தனியுரிமைதான் மற்றும் அனுமதியுடைய அணுகல் தேவை.",
@@ -2537,7 +2541,8 @@
     "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "அசல் மூலத்திலிருந்து புதிய வரைவை உருவாக்கவும். ஏற்கனவே செய்த மாற்றங்கள் முந்தைய பதிப்பில் பாதுகாக்கப்படும்; புதிய வரைவைச் சரிபார்க்க வேண்டும்.",
     "Extract source into a new draft": "மூலத்திலிருந்து புதிய வரைவை உருவாக்கவும்",
     "source field extraction v1": "மூல விவரங்கள் பிரித்தெடுத்தல் v1",
-    "source field extraction v2": "மூல விவரங்கள் பிரித்தெடுத்தல் v2"
+    "source field extraction v2": "மூல விவரங்கள் பிரித்தெடுத்தல் v2",
+    "source field extraction v3": "மூல விவரங்கள் பிரித்தெடுத்தல் v3"
   },
   "te": {
     ". Files stay private and require authorized access.": ". ఫైళ్లు ప్రైవేట్‌గా ఉంటాయి మరియు అధికృత ప్రాప్తి అవసరం.",
@@ -3045,6 +3050,7 @@
     "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "అసలు మూలం నుండి కొత్త ముసాయిదా సృష్టించండి. ఉన్న మార్పులు మునుపటి సంచికలో భద్రంగా ఉంటాయి; కొత్త ముసాయిదాను సమీక్షించాలి.",
     "Extract source into a new draft": "మూలం నుండి కొత్త ముసాయిదా సృష్టించండి",
     "source field extraction v1": "మూల వివరాల సంగ్రహణ v1",
-    "source field extraction v2": "మూల వివరాల సంగ్రహణ v2"
+    "source field extraction v2": "మూల వివరాల సంగ్రహణ v2",
+    "source field extraction v3": "మూల వివరాల సంగ్రహణ v3"
   }
 }

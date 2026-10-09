@@ -1,6 +1,6 @@
 import {clinicalFields,instructionSchema,sourceGrounded,type ExtractedInstruction} from "./contracts";
 
-export const sourceExtractionMethod="source field extraction v2";
+export const sourceExtractionMethod="source field extraction v3";
 const labels="medication(?: name)?|medicine(?: name)?|drug|dose|unit|route|frequency|timing|duration|follow.?up";
 const fieldLine=new RegExp(`^(?:${labels})\\s*:`,"i");
 const metadata=/^(?:patient|test doctor|doctor|scenario|diagnosis|prescriber|date|plan|care plan)\s*:|^(?:FICTIONAL (?:TRAINING PRESCRIPTION|DEMO)|NOT FOR REAL PATIENT CARE)/i;
@@ -48,7 +48,8 @@ export function extractSourceFields(text:string):ExtractedInstruction[]{
   const followupClause=/\b(?:follow[- ]?up|review|appointment)\s+(?:in|on|at)\s+[^\n]+/i.exec(sourcePassage);
   const medicationText=followupClause&&followupClause.index>0?sourcePassage.slice(0,followupClause.index):sourcePassage;
   // Full words only. PRN/BD/OD and relative dates deliberately require review.
-  const quantity=[...sourcePassage.matchAll(/\b(\d+(?:\.\d+)?|one|two|half)\s*(tablets?|tabs?|capsules?|caps?|mg|mcg|ml|drops?|puffs?)\b/gi)].filter(m=>!(medicineRow.test(sourcePassage)&&m.index===sourcePassage.search(/\S/)&&/^\d+\s+(?:Tab\.|Cap\.)/i.test(sourcePassage.trim())));
+  const quantity=[...sourcePassage.matchAll(/\b(\d+(?:\.\d+)?|one|two|half)\s*(tablets?|tables?|tabs?|capsules?|caps?|mg|mcg|ml|drops?|puffs?)\b/gi)].filter(m=>!(medicineRow.test(sourcePassage)&&m.index===sourcePassage.search(/\S/)&&/^\d+\s+(?:Tab\.|Cap\.)/i.test(sourcePassage.trim())));
+  if(quantity.some(m=>/^tables?$/i.test(m[2])))i.sourceUnclear=true;
   const administration=quantity.filter(m=>/^(?:tab|cap|drop|puff)/i.test(m[2]));
   const doses=administration.length?administration:medicineRow.test(sourcePassage)?[]:quantity;
   if(!i.dose&&!i.unit&&doses.length===1){i.dose=doses[0][1];i.unit=doses[0][2];}
@@ -72,7 +73,7 @@ export function extractSourceFields(text:string):ExtractedInstruction[]{
    // Unlabelled prescription lines: retain the stated strength in the name,
    // while the separate administration quantity remains the dose. Require both
    // a strength and an administration quantity to avoid classifying lab values.
-   const bare=/^\s*(?:[•*-]\s*|\d+[.)]\s*)?([A-Za-z][A-Za-z0-9 ()/+-]*?\s+\d+(?:[,.]\d+)?\s*(?:mg|mcg|IU|units?)\b)\s+(?:\d+(?:\.\d+)?|one|two|half)\s+(?:tablets?|tabs?|capsules?|caps?|ml|drops?|puffs?)\b/i.exec(sourcePassage);
+   const bare=/^\s*(?:[•*-]\s*|\d+[.)]\s*)?([A-Za-z][A-Za-z0-9 ()/+-]*?\s+\d+(?:[,.]\d+)?\s*(?:mg|mcg|IU|units?)\b)\s+(?:\d+(?:\.\d+)?|one|two|half)\s+(?:tablets?|tables?|tabs?|capsules?|caps?|ml|drops?|puffs?)\b/i.exec(sourcePassage);
    const bareName=bare&&!/^(?:do\b|avoid\b|stop\b|reduce\b|increase\b|do not\b)/i.test(bare[1])?bare[1]:null;
    i.medicationName=(comma?.[1]||take?.[1]||tab?.[1]||bareName)?.trim()||null;
   }
@@ -113,6 +114,6 @@ export function extractSourceFields(text:string):ExtractedInstruction[]{
 export function isUntouchedLegacyExtraction(v:{status:string;method:string;instructions:{kind:string;title:string;sourceLocation:string|null;reviewState:string;medicationName:string|null;dose:string|null;unit:string|null;route:string|null;frequency:string|null;timing:string|null;duration:string|null;followUpAt:unknown;explanations:{status:string}[]}[]}){
  const pristine=v.status==="DRAFT"&&v.instructions.length>0&&v.instructions.every(i=>i.reviewState==="DRAFT"&&i.explanations.length===0);
  if(!pristine)return false;
- if(v.method==="source field extraction v1")return true;
+ if(["source field extraction v1","source field extraction v2"].includes(v.method))return true;
  return v.method==="clinician entry"&&v.instructions.every(i=>i.kind==="CARE"&&/^Source instruction \d+$/.test(i.title)&&/^Source paragraph \d+$/.test(i.sourceLocation||"")&&clinicalFields.every(f=>!i[f])&&!i.followUpAt);
 }

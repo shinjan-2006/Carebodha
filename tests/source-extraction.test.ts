@@ -7,6 +7,11 @@ describe("literal prescription extraction",()=>{
   expect(medication).toMatchObject({kind:"MEDICATION",medicationName:"Metformin 500 mg",dose:"1",unit:"tablet",frequency:"twice daily",route:null,timing:null,duration:null});
   expect(followup).toMatchObject({kind:"FOLLOW_UP",sourcePassage:"review in 3 months",followUpAt:null});
  });
+ it("preserves a misspelled unit and flags it without discarding the remaining source fields",()=>{
+  const [med,followup]=extractSourceFields("glimepriride 1 mg    1 table once daily    review in 3 months");
+  expect(med).toMatchObject({kind:"MEDICATION",medicationName:"glimepriride 1 mg",dose:"1",unit:"table",frequency:"once daily",sourceUnclear:true,route:null,timing:null,duration:null});
+  expect(followup.kind).toBe("FOLLOW_UP");
+ });
  it("keeps the strength, administration dose and stated duration separate",()=>{
   const [i]=extractSourceFields("Sample XR 250mg 2 capsules oral twice daily after food for 5 days");
   expect(i).toMatchObject({kind:"MEDICATION",medicationName:"Sample XR 250mg",dose:"2",unit:"capsules",route:"oral",frequency:"twice daily",timing:"after food",duration:"5 days"});
