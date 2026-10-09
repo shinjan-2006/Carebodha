@@ -2,6 +2,16 @@ import {describe,it,expect} from "vitest";
 import {readFileSync} from "node:fs";
 import {extractSourceFields,isUntouchedLegacyExtraction} from "../src/lib/source-extraction";
 describe("literal prescription extraction",()=>{
+ it("extracts the exact unlabelled prescription in the reported screenshot",()=>{
+  const [medication,followup]=extractSourceFields("Metformin 500 mg  1 tablet twice daily  review in 3 months");
+  expect(medication).toMatchObject({kind:"MEDICATION",medicationName:"Metformin 500 mg",dose:"1",unit:"tablet",frequency:"twice daily",route:null,timing:null,duration:null});
+  expect(followup).toMatchObject({kind:"FOLLOW_UP",sourcePassage:"review in 3 months",followUpAt:null});
+ });
+ it("keeps the strength, administration dose and stated duration separate",()=>{
+  const [i]=extractSourceFields("Sample XR 250mg 2 capsules oral twice daily after food for 5 days");
+  expect(i).toMatchObject({kind:"MEDICATION",medicationName:"Sample XR 250mg",dose:"2",unit:"capsules",route:"oral",frequency:"twice daily",timing:"after food",duration:"5 days"});
+  expect(extractSourceFields("Fasting glucose 168 mg/dL")[0].kind).toBe("CARE");
+ });
  for(const key of ["asha","ravi","meera"]){
   it(`extracts ${key}'s actual sample source and separates care from medication`,()=>{
    const source=readFileSync(`docs/sample-prescriptions/${key}-prescription.txt`,"utf8");
@@ -40,5 +50,7 @@ describe("literal prescription extraction",()=>{
   expect(isUntouchedLegacyExtraction({...v,status:"APPROVED"})).toBe(false);
   expect(isUntouchedLegacyExtraction({...v,instructions:[{...i,reviewState:"REVIEWED"}]})).toBe(false);
   expect(isUntouchedLegacyExtraction({...v,instructions:[{...i,dose:"1"}]})).toBe(false);
+  expect(isUntouchedLegacyExtraction({...v,method:"source field extraction v1"})).toBe(true);
+  expect(isUntouchedLegacyExtraction({...v,method:"source field extraction v1",instructions:[{...i,reviewState:"REVIEWED"}]})).toBe(false);
  });
 });

@@ -84,6 +84,7 @@ export async function recoverExtraction(user:Actor,id:string){
     await tx.$queryRaw`SELECT id FROM "CarePlanVersion" WHERE id=${id} FOR UPDATE`;
     const current=await tx.carePlanVersion.findUniqueOrThrow({where:{id},include:{instructions:{include:{explanations:true}}}});
     if(!isUntouchedLegacyExtraction(current))return {recovered:false};
+    if(await tx.auditEvent.count({where:{action:"EXTRACTION_REVIEWED",resourceId:{in:current.instructions.map(i=>i.id)}}}))return {recovered:false};
     await tx.careInstruction.deleteMany({where:{versionId:id}});
     for(const i of instructions)await tx.careInstruction.create({data:{...i,followUpAt:i.followUpAt?new Date(i.followUpAt):null,versionId:id}});
     await tx.carePlanVersion.update({where:{id},data:{method:sourceExtractionMethod}});
