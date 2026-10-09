@@ -290,3 +290,24 @@ html:not([lang=en]) .landing-menu .menu-links a{font-size:clamp(25px,3vw,48px);l
 .closing-stage .final-cta .chapter-scene{opacity:.8}
 @media(max-width:680px){.support-scroll{left:50%;translate:-50% 0;bottom:2vh;font-size:9px;gap:16px}.motion-enabled .support-scroll{translate:-50% calc(var(--support-out,0)*-20px)}.closing-stage .final-cta .chapter-scene{opacity:.65}}
 @media(prefers-reduced-motion:reduce){.closing-frame{position:relative}.support-scroll{opacity:1;translate:none}.closing-stage .final-cta{opacity:1}}
+/* Each chapter owns its scroll space; the final thought holds before the handoff. */
+.motion-enabled .clarity-stage{margin-top:0;background:var(--bg)}
+.motion-enabled .editorial-teachback{margin-top:0}
+.motion-enabled .clarity-stage .typography-chapter:before{opacity:1}
+.motion-enabled .closing-stage{height:auto;min-height:0;background:#050506}
+.support-stage{position:relative;height:calc(100svh + 480px);min-height:1180px;isolation:isolate}
+.motion-enabled .closing-frame{background:#050506;mask-image:none}
+.motion-enabled .closing-stage .final-cta{position:relative;inset:auto;min-height:100svh;height:auto;margin:0;opacity:1;pointer-events:auto}
+.closing-stage .final-cta{scroll-margin-top:0}
+.motion-enabled .gallery-count,.motion-enabled .gallery-caption,.motion-enabled .gallery-controls,.motion-enabled .gallery-chapter>.chapter-scene{opacity:var(--gallery-in,1);translate:0 calc((1 - var(--gallery-in,1))*3vh)}
+.motion-enabled .clarity-stage .depth-words{opacity:var(--clarity-in,1);translate:0 calc((1 - var(--clarity-in,1))*3vh)}
+.motion-enabled .clarity-stage .clarity-bottom,.motion-enabled .clarity-stage .eyebrow,.motion-enabled .clarity-counter{opacity:var(--clarity-in,1)}
+@media(prefers-reduced-motion:reduce){.support-stage{height:auto;min-height:0}.closing-stage .final-cta{position:relative}.closing-stage .immersive-family{position:relative;height:auto}}
+html:not([lang=en]) .gallery-caption h2{font-size:clamp(32px,6vw,92px);line-height:1.2;letter-spacing:0}
+html:not([lang=en]) .clarity-stage .depth-word{font-size:clamp(44px,10vw,156px);line-height:1.25;letter-spacing:0}
+html:not([lang=en]) .support-title h2{white-space:normal;font-size:clamp(32px,5.5vw,86px);line-height:1.25;letter-spacing:0}
+html:not([lang=en]) .hero-serif{font-size:clamp(30px,5vw,76px);line-height:1.3}
+html:not([lang=en]) .marketing-section h2,html:not([lang=en]) .final-cta h2{line-height:1.3;letter-spacing:0}
+html:not([lang=en]) .landing-menu-button{letter-spacing:0;font-size:14px}
+html:not([lang=en]) .editorial-link,html:not([lang=en]) .eyebrow,html:not([lang=en]) .gallery-controls button{letter-spacing:.025em}
+@media(max-width:680px){html:not([lang=en]) .gallery-caption h2{font-size:8vw}html:not([lang=en]) .support-title h2{font-size:7.5vw}html:not([lang=en]) .hero-serif{font-size:7.5vw}html:not([lang=en]) .final-cta h2{font-size:9vw}}

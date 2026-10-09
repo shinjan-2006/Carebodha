@@ -6,7 +6,7 @@ const LanguageContext=createContext<{language:Language;setLanguage:(language:Lan
 export function LanguageProvider({children}:{children:React.ReactNode}) {
  const [language,update]=useState<Language>("en");
  useEffect(()=>{try{const saved=localStorage.getItem("carebodha-language-v1");if(isLanguage(saved))update(saved);}catch{}},[]);
- const setLanguage=useCallback((value:Language)=>{update(value);try{localStorage.setItem("carebodha-language-v1",value);}catch{}},[]);
+ const setLanguage=useCallback((value:Language)=>{document.documentElement.lang=value;update(value);try{localStorage.setItem("carebodha-language-v1",value);}catch{}},[]);
  useEffect(()=>{document.documentElement.lang=language;},[language]);
  return <LanguageContext.Provider value={{language,setLanguage,t:key=>uiText[language][key]}}>{children}</LanguageContext.Provider>;
 }

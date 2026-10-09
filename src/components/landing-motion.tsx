@@ -1,14 +1,18 @@
 "use client";
 import {useEffect,useState,type RefObject,type CSSProperties} from "react";
+import {useUi} from "./ui-text";
+import {useLanguage} from "./language-provider";
 
 // MATTER's letter reveal delays and easing, with one accessible text label.
 export function MotionText({text,line=0,step,delay}:{text:string;line?:number;step?:number;delay?:number}) {
+  const ui=useUi();text=ui(text);
   let index=0;
-  return <span className="motion-text" aria-hidden="true">{text.split(/(\s+)/).map((word,w)=><span className="motion-word" key={w}>{Array.from(word,char=>{const i=index++;return <span key={i} className={`motion-char${char===" "?" motion-space":""}`} style={{"--char-delay":`${(delay??(line===1?700:120))+i*(step??(line===1?45:55))}ms`} as CSSProperties}>{char===" "?"\u00a0":char}</span>;})}</span>)}</span>;
+  return <span className="motion-text" aria-hidden="true">{text.split(/(\s+)/).map((word,w)=><span className="motion-word" key={w}>{Array.from(new Intl.Segmenter(undefined,{granularity:"grapheme"}).segment(word),({segment:char})=>{const i=index++;return <span key={i} className={`motion-char${char===" "?" motion-space":""}`} style={{"--char-delay":`${(delay??(line===1?700:120))+i*(step??(line===1?45:55))}ms`} as CSSProperties}>{char===" "?"\u00a0":char}</span>;})}</span>)}</span>;
 }
 const range=(v:number,a:number,b:number)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
 /** Shared scroll timeline. CSS sticky preserves wheel, touch, PageDown and anchors. */
 export function useLandingMotion(root:RefObject<HTMLDivElement|null>) {
+  const {language}=useLanguage();
   const [motionEnabled,setMotionEnabled]=useState(true);
   useEffect(()=>{
     const el=root.current;if(!el)return;
@@ -71,6 +75,6 @@ export function useLandingMotion(root:RefObject<HTMLDivElement|null>) {
     const focusHero=(event:FocusEvent)=>{if(!reduce.matches && stage!.dataset.scene!=="fallback" && event.target instanceof HTMLElement && event.target.matches(":focus-visible") && Number(hero!.dataset.progress || 0)>.6)stage!.scrollIntoView({behavior:"instant",block:"start"});};
     hero.addEventListener("focusin",focusHero);
     return()=>{cancelAnimationFrame(raf);clearTimeout(introTimer);observer.disconnect();outroObserver.disconnect();reduce.removeEventListener("change",preference);hero.removeEventListener("focusin",focusHero);el.removeEventListener("pointermove",pointer);el.removeEventListener("pointerleave",leave);};
-  },[root]);
+  },[root,language]);
   return motionEnabled;
 }
