@@ -295,7 +295,7 @@ html:not([lang=en]) .landing-menu .menu-links a{font-size:clamp(25px,3vw,48px);l
 .motion-enabled .editorial-teachback{margin-top:0}
 .motion-enabled .clarity-stage .typography-chapter:before{opacity:1}
 .motion-enabled .closing-stage{height:auto;min-height:0;background:#050506}
-.support-stage{position:relative;height:calc(100svh + 480px);min-height:1180px;isolation:isolate}
+.support-stage{position:relative;height:calc(100svh + 720px);min-height:1420px;isolation:isolate}
 .motion-enabled .closing-frame{background:#050506;mask-image:none}
 .motion-enabled .closing-stage .final-cta{position:relative;inset:auto;min-height:100svh;height:auto;margin:0;opacity:1;pointer-events:auto}
 .closing-stage .final-cta{scroll-margin-top:0}
