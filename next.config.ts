@@ -7,7 +7,7 @@ const config: NextConfig = {
     return config;
   },
   serverExternalPackages: ["@prisma/client", "pdf-parse", "@napi-rs/canvas", "tesseract.js"],
-  outputFileTracingIncludes: {"/.well-known/workflow/v1/flow":["./node_modules/.pnpm/@napi-rs+canvas*/node_modules/@napi-rs/**/*"]},
+  outputFileTracingIncludes: {"/.well-known/workflow/v1/flow":["./node_modules/.pnpm/@napi-rs+canvas-linux-x64-gnu@*/node_modules/@napi-rs/canvas-linux-x64-gnu/*.node"]},
   async headers() { return [{source: "/:path*", headers: [
     {key:"X-Content-Type-Options",value:"nosniff"}, {key:"X-Frame-Options",value:"DENY"},
     {key:"Referrer-Policy",value:"same-origin"}, {key:"Permissions-Policy",value:"camera=(), microphone=(self), geolocation=()"}
