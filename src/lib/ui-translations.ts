@@ -1,6 +1,7 @@
 import catalog from "./ui-catalog.json";
 import {uiText,type Language} from "./languages";
 import {manualUi} from "./ui-manual";
+import {voiceUi} from "./voice-ui";
 const translations=Object.fromEntries(Object.entries(catalog).map(([language,rows])=>[language,Object.fromEntries(Object.entries(rows).map(([key,value])=>[key.toLowerCase(),value]))])) as Partial<Record<Language,Record<string,string>>>;
 const commonKeys=Object.fromEntries(Object.entries(uiText.en).map(([key,value])=>[value,key])) as Record<string,keyof typeof uiText.en>;
 const overrides:Partial<Record<Language,Record<string,string>>>={
@@ -18,7 +19,7 @@ export function translateUi(text:string,language:Language){
  const aliases:Record<string,string>={MEDICATION:"Medication",CARE:"Care",WARNING:"Warning",CONTACT:"Contact","FOLLOW UP":"Follow-up",READ:"Read"};
  const key=aliases[original] || original;
  const common=commonKeys[key];
- const translated=manualUi[language]?.[key] || overrides[language]?.[key] || (common?uiText[language][common]:undefined) || translations[language]?.[key.toLowerCase()];
+ const translated=voiceUi[language]?.[key] || manualUi[language]?.[key] || overrides[language]?.[key] || (common?uiText[language][common]:undefined) || translations[language]?.[key.toLowerCase()];
  if(!translated)return text;
  return `${/^\s/.test(text)?" ":""}${translated}${/\s$/.test(text)?" ":""}`;
 }

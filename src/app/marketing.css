@@ -311,3 +311,9 @@ html:not([lang=en]) .marketing-section h2,html:not([lang=en]) .final-cta h2{line
 html:not([lang=en]) .landing-menu-button{letter-spacing:0;font-size:14px}
 html:not([lang=en]) .editorial-link,html:not([lang=en]) .eyebrow,html:not([lang=en]) .gallery-controls button{letter-spacing:.025em}
 @media(max-width:680px){html:not([lang=en]) .gallery-caption h2{font-size:8vw}html:not([lang=en]) .support-title h2{font-size:7.5vw}html:not([lang=en]) .hero-serif{font-size:7.5vw}html:not([lang=en]) .final-cta h2{font-size:9vw}}
+
+/* Browser-drawn cursor stays responsive independently of the WebGL frame rate. */
+.matter-cursor-native-finale .landing-experience #family,.matter-cursor-native-finale .landing-experience #family *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Ccircle cx='22' cy='22' r='20' fill='none' stroke='%23050506' stroke-width='3'/%3E%3Ccircle cx='22' cy='22' r='20' fill='none' stroke='%23f3f2ee' stroke-width='1'/%3E%3Ccircle cx='22' cy='22' r='3' fill='%23c4a657'/%3E%3C/svg%3E") 22 22,auto}
+.matter-cursor-native-finale .landing-experience #family a,.matter-cursor-native-finale .landing-experience #family a *,.matter-cursor-native-finale .landing-experience #family button,.matter-cursor-native-finale .landing-experience #family button *{cursor:pointer}
+.matter-cursor-native-finale .matter-cursor-dot,.matter-cursor-native-finale .matter-cursor-ring{visibility:hidden}
+.voice-input-language{display:flex;align-items:center;gap:8px;margin-top:12px;margin-bottom:12px;color:var(--muted);font-size:14px}

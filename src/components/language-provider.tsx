@@ -2,12 +2,13 @@
 import {createContext,useContext,useEffect,useState,useCallback} from "react";
 import {Languages} from "lucide-react";
 import {isLanguage,languages,uiText,type Language,type TextKey} from "@/lib/languages";
+import {cancelSpeech} from "@/lib/speech";
 const LanguageContext=createContext<{language:Language;setLanguage:(language:Language)=>void;t:(key:TextKey)=>string}>({language:"en",setLanguage:()=>{},t:key=>uiText.en[key]});
 export function LanguageProvider({children}:{children:React.ReactNode}) {
  const [language,update]=useState<Language>("en");
  useEffect(()=>{try{const saved=localStorage.getItem("carebodha-language-v1");if(isLanguage(saved))update(saved);}catch{}},[]);
  const setLanguage=useCallback((value:Language)=>{document.documentElement.lang=value;update(value);try{localStorage.setItem("carebodha-language-v1",value);}catch{}},[]);
- useEffect(()=>{document.documentElement.lang=language;},[language]);
+ useEffect(()=>{document.documentElement.lang=language;cancelSpeech();},[language]);
  return <LanguageContext.Provider value={{language,setLanguage,t:key=>uiText[language][key]}}>{children}</LanguageContext.Provider>;
 }
 export const useLanguage=()=>useContext(LanguageContext);
