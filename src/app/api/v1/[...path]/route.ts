@@ -31,6 +31,8 @@ async function handler(req:Request, ctx:{params:Promise<{path:string[]}>}) {
     else if(m==="POST" && p[0]==="plans" && p[1] && p[2]==="versions") data=await service.createDraft(u,p[1]);
     else if(m==="PATCH" && p[0]==="instructions" && p[1]) data=await service.updateInstruction(u,p[1],await body());
     else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="generate") data=await service.generateExplanations(u,p[1]);
+    else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="extract" && !p[3]) data=await service.recoverExtraction(u,p[1]);
+    else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="extract-new" && !p[3]) data=await service.extractNewDraft(u,p[1]);
     else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="approve") data=await service.approve(u,p[1]);
     else if(m==="PATCH" && p[0]==="explanations" && p[1]) data=await service.reviewExplanation(u,p[1],await body());
     else if(m==="POST" && p[0]==="teachback") data=await service.submitTeachBack(u,await body());

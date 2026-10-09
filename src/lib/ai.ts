@@ -1,6 +1,7 @@
 import { extractionSchema, sourceGrounded, clinicalFields, type ExtractedInstruction, type InstructionForCheck } from "./contracts";
 import { deterministicComparison, validateComparison, checkedFields } from "./teachback";
 import {languageInfo,type Language} from "./languages";
+import {extractSourceFields,sourceExtractionMethod} from "./source-extraction";
 export class ProviderFailure extends Error { constructor(public code: string) { super(code); } }
 const isDemo = () => process.env.AI_PROVIDER === "demo" && process.env.APP_MODE === "demo";
 async function provider(operation: string, data: unknown): Promise<unknown> {
@@ -30,10 +31,8 @@ function instruction(kind: ExtractedInstruction["kind"], title: string, sourcePa
 }
 export async function extract(text: string): Promise<{instructions: ExtractedInstruction[]; method: string}> {
   if(process.env.AI_PROVIDER==="manual" && process.env.APP_MODE!=="demo") {
-    // Preserve verbatim paragraphs. Clinical fields require a clinician, never a guess.
-    const passages=text.trim().split(/\n\s*\n/).filter(Boolean);
-    if(passages.length>80 || passages.some(p=>p.length>8000))throw new ProviderFailure("SOURCE_REQUIRES_SMALLER_SECTIONS");
-    return {instructions:passages.map((p,n)=>sourceGrounded({...instruction("CARE",`Source instruction ${n+1}`,p),sourceLocation:`Source paragraph ${n+1}`},text)),method:"clinician entry"};
+    try{return {instructions:extractSourceFields(text),method:sourceExtractionMethod};}
+    catch(error){if(error instanceof Error&&error.message==="SOURCE_REQUIRES_SMALLER_SECTIONS")throw new ProviderFailure(error.message);throw error;}
   }
   if (isDemo()) {
     const normalize=(s:string)=>s.replace(/\s+/g," ").trim();

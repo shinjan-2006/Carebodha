@@ -500,7 +500,11 @@
     "Your selected reminder time": "আপনার নির্বাচিত অনুস্মারক সময়",
     "Your shared permissions": "আপনার ভাগ করা অনুমতিসমূহ",
     "Your teach-back attempts": "আপনার টিচ-ব্যাক প্রচেষ্টা",
-    "Your words": "আপনার শব্দগুলি"
+    "Your words": "আপনার শব্দগুলি",
+    "Source fields are extracted automatically when explicitly stated. Review every draft; missing details stay empty and unclear text needs doctor clarification.": "উৎসে স্পষ্টভাবে দেওয়া তথ্য স্বয়ংক্রিয়ভাবে নেওয়া হয়। প্রতিটি খসড়া যাচাই করুন; অনুপস্থিত তথ্য ফাঁকা থাকবে এবং অস্পষ্ট লেখার জন্য ডাক্তারের ব্যাখ্যা প্রয়োজন।",
+    "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "মূল উৎস থেকে নতুন খসড়া তৈরি করুন। আগের পরিবর্তনগুলি পূর্ববর্তী সংস্করণে থাকবে; নতুন খসড়া যাচাই করা প্রয়োজন।",
+    "Extract source into a new draft": "উৎস থেকে নতুন খসড়া তৈরি করুন",
+    "source field extraction v1": "উৎস তথ্য নিষ্কাশন v1"
   },
   "hi": {
     ". Files stay private and require authorized access.": ". फ़ाइलें निजी रहती हैं और अधिकृत पहुंच की आवश्यकता होती है।",
@@ -1003,7 +1007,11 @@
     "Your selected reminder time": "आपका चयनित अनुस्मारक समय",
     "Your shared permissions": "आपके साझा अनुमतियाँ।",
     "Your teach-back attempts": "आपके द्वारा सिखाने के प्रयास।",
-    "Your words": "आपके शब्द"
+    "Your words": "आपके शब्द",
+    "Source fields are extracted automatically when explicitly stated. Review every draft; missing details stay empty and unclear text needs doctor clarification.": "स्रोत में स्पष्ट रूप से दी गई जानकारी स्वतः निकाली जाती है। हर मसौदे की समीक्षा करें; अनुपलब्ध जानकारी खाली रहेगी और अस्पष्ट पाठ के लिए डॉक्टर से स्पष्टीकरण चाहिए।",
+    "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "मूल स्रोत से नया मसौदा बनाएं। मौजूदा बदलाव पिछले संस्करण में सुरक्षित रहेंगे; नए मसौदे की समीक्षा आवश्यक है।",
+    "Extract source into a new draft": "स्रोत से नया मसौदा बनाएं",
+    "source field extraction v1": "स्रोत जानकारी निष्कर्षण v1"
   },
   "or": {
     ". Files stay private and require authorized access.": ". ଫାଇଲ୍ଗୁଡିକ ଗୋପନୀୟ ରହିଥାଏ ଏବଂ ଅନୁମୋଦିତ ପ୍ରବେଶ ଆବଶ୍ୟକ।",
@@ -1506,7 +1514,11 @@
     "Your selected reminder time": "ଆପଣଙ୍କର ଚୟନ କରାଯାଇଥିବା ସ୍ମରଣ ସମୟ",
     "Your shared permissions": "ଆପଣଙ୍କର ଅଂଶୀଦାରି ପ୍ରତିଷ୍ଠାନ",
     "Your teach-back attempts": "ଆପଣଙ୍କର ଟିଚ-ବ୍ୟାକ୍ ପ୍ରୟାସ",
-    "Your words": "ତୁମର ଶବ୍ଦ"
+    "Your words": "ତୁମର ଶବ୍ଦ",
+    "Source fields are extracted automatically when explicitly stated. Review every draft; missing details stay empty and unclear text needs doctor clarification.": "ଉତ୍ସରେ ସ୍ପଷ୍ଟ ଭାବେ ଦିଆଯାଇଥିବା ତଥ୍ୟ ସ୍ୱୟଂଚାଳିତ ଭାବେ ବାହାର କରାଯାଏ। ପ୍ରତ୍ୟେକ ଖସଡ଼ା ଯାଞ୍ଚ କରନ୍ତୁ; ଅନୁପସ୍ଥିତ ତଥ୍ୟ ଖାଲି ରହିବ ଏବଂ ଅସ୍ପଷ୍ଟ ଲେଖା ପାଇଁ ଡାକ୍ତରଙ୍କ ସ୍ପଷ୍ଟୀକରଣ ଆବଶ୍ୟକ।",
+    "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "ମୂଳ ଉତ୍ସରୁ ନୂଆ ଖସଡ଼ା ତିଆରି କରନ୍ତୁ। ପୂର୍ବ ପରିବର୍ତ୍ତନଗୁଡ଼ିକ ପୁରୁଣା ସଂସ୍କରଣରେ ସୁରକ୍ଷିତ ରହିବ; ନୂଆ ଖସଡ଼ା ଯାଞ୍ଚ ଆବଶ୍ୟକ।",
+    "Extract source into a new draft": "ଉତ୍ସରୁ ନୂଆ ଖସଡ଼ା ତିଆରି କରନ୍ତୁ",
+    "source field extraction v1": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v1"
   },
   "pa": {
     ". Files stay private and require authorized access.": ". ਫਾਈਲਾਂ ਨਿੱਜੀ ਹੀ ਰਹਿੰਦੀਆਂ ਹਨ ਅਤੇ ਅਧਿਕ੍ਰਿਤ ਪਹੁੰਚ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।",
@@ -2009,7 +2021,11 @@
     "Your selected reminder time": "ਤੁਸੀਂ ਚੁਣਿਆ ਹੋਇਆ ਯਾਦ ਦਿਵਾਊ ਸਮਾਂ",
     "Your shared permissions": "ਤੁਹਾਡੇ ਸਾਂਝੇ ਅਧਿਕਾਰ",
     "Your teach-back attempts": "ਤੁਹਾਡੇ ਸਿਖਾਉਣ-ਵਾਪਸੀ ਦੇ ਯਤਨ",
-    "Your words": "ਤੁਹਾਡੇ ਸ਼ਬਦ"
+    "Your words": "ਤੁਹਾਡੇ ਸ਼ਬਦ",
+    "Source fields are extracted automatically when explicitly stated. Review every draft; missing details stay empty and unclear text needs doctor clarification.": "ਸਰੋਤ ਵਿੱਚ ਸਪਸ਼ਟ ਦਿੱਤੀ ਜਾਣਕਾਰੀ ਆਪਣੇ ਆਪ ਕੱਢੀ ਜਾਂਦੀ ਹੈ। ਹਰ ਖਰੜੇ ਦੀ ਸਮੀਖਿਆ ਕਰੋ; ਗੁੰਮ ਵੇਰਵੇ ਖਾਲੀ ਰਹਿਣਗੇ ਅਤੇ ਅਸਪਸ਼ਟ ਲਿਖਤ ਲਈ ਡਾਕਟਰ ਦੀ ਸਪਸ਼ਟੀਕਰਨ ਲੋੜੀਂਦੀ ਹੈ।",
+    "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "ਮੂਲ ਸਰੋਤ ਤੋਂ ਨਵਾਂ ਖਰੜਾ ਬਣਾਓ। ਮੌਜੂਦਾ ਤਬਦੀਲੀਆਂ ਪਿਛਲੇ ਸੰਸਕਰਣ ਵਿੱਚ ਸੰਭਾਲੀਆਂ ਰਹਿਣਗੀਆਂ; ਨਵੇਂ ਖਰੜੇ ਦੀ ਸਮੀਖਿਆ ਲੋੜੀਂਦੀ ਹੈ।",
+    "Extract source into a new draft": "ਸਰੋਤ ਤੋਂ ਨਵਾਂ ਖਰੜਾ ਬਣਾਓ",
+    "source field extraction v1": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v1"
   },
   "ta": {
     ". Files stay private and require authorized access.": ". கோப்புகள் தனியுரிமைதான் மற்றும் அனுமதியுடைய அணுகல் தேவை.",
@@ -2512,7 +2528,11 @@
     "Your selected reminder time": "நீங்கள் தேர்ந்தெடுத்த நினைவூட்டும் நேரம்",
     "Your shared permissions": "உங்கள் பகிரப்பட்ட அனுமதிகள்",
     "Your teach-back attempts": "உங்கள் மீள்படி கற்றல் முயற்சிகள்",
-    "Your words": "உங்கள் வார்த்தைகள்"
+    "Your words": "உங்கள் வார்த்தைகள்",
+    "Source fields are extracted automatically when explicitly stated. Review every draft; missing details stay empty and unclear text needs doctor clarification.": "மூலத்தில் தெளிவாக உள்ள விவரங்கள் தானாகப் பிரித்தெடுக்கப்படும். ஒவ்வொரு வரைவையும் சரிபார்க்கவும்; இல்லாத விவரங்கள் காலியாக இருக்கும், தெளிவற்ற உரைக்கு மருத்துவரின் விளக்கம் தேவை.",
+    "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "அசல் மூலத்திலிருந்து புதிய வரைவை உருவாக்கவும். ஏற்கனவே செய்த மாற்றங்கள் முந்தைய பதிப்பில் பாதுகாக்கப்படும்; புதிய வரைவைச் சரிபார்க்க வேண்டும்.",
+    "Extract source into a new draft": "மூலத்திலிருந்து புதிய வரைவை உருவாக்கவும்",
+    "source field extraction v1": "மூல விவரங்கள் பிரித்தெடுத்தல் v1"
   },
   "te": {
     ". Files stay private and require authorized access.": ". ఫైళ్లు ప్రైవేట్‌గా ఉంటాయి మరియు అధికృత ప్రాప్తి అవసరం.",
@@ -3015,6 +3035,10 @@
     "Your selected reminder time": "మీరు ఎంచుకున్న స్మరణ సమయం",
     "Your shared permissions": "మీ షేర్డ్ అనుమతులు",
     "Your teach-back attempts": "మీ రీయూస్‌ టచ్ ప్రయత్నాలు",
-    "Your words": "మీ మాటలు"
+    "Your words": "మీ మాటలు",
+    "Source fields are extracted automatically when explicitly stated. Review every draft; missing details stay empty and unclear text needs doctor clarification.": "మూలంలో స్పష్టంగా ఉన్న వివరాలు స్వయంచాలకంగా సంగ్రహించబడతాయి. ప్రతి ముసాయిదాను సమీక్షించండి; లేని వివరాలు ఖాళీగా ఉంటాయి మరియు అస్పష్టమైన వచనానికి వైద్యుని వివరణ అవసరం.",
+    "Extract the original source into a fresh draft. Existing edits are kept in the previous version; the new draft requires review.": "అసలు మూలం నుండి కొత్త ముసాయిదా సృష్టించండి. ఉన్న మార్పులు మునుపటి సంచికలో భద్రంగా ఉంటాయి; కొత్త ముసాయిదాను సమీక్షించాలి.",
+    "Extract source into a new draft": "మూలం నుండి కొత్త ముసాయిదా సృష్టించండి",
+    "source field extraction v1": "మూల వివరాల సంగ్రహణ v1"
   }
 }

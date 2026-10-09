@@ -9,6 +9,7 @@ import { overallStatus } from "./teachback";
 import { storePrivate, readPrivate, validateFile } from "./storage";
 import {languageCodes,type Language} from "./languages";
 import {authOrigin} from "./auth-origin";
+import {extractSourceFields,sourceExtractionMethod,isUntouchedLegacyExtraction} from "./source-extraction";
 export {assignPatient} from "./expert-patients";
 const audit = (actorId:string,action:string,resourceId:string) => ({actorId,action,resourceId});
 const profileSelect={id:true,user:{select:{id:true,name:true,email:true,username:true}},language:true,timezone:true,largeText:true};
@@ -71,6 +72,40 @@ export async function updateInstruction(user:Actor,id:string,body:unknown) {
     // Any edit requires explanation review again, even when the old translations are retained.
     await tx.instructionExplanation.updateMany({where:{instructionId:id},data:{status:"DRAFT"}});
     await tx.auditEvent.create({data:audit(user.id,"EXTRACTION_REVIEWED",id)}); return row;
+  });
+}
+/** Upgrade only untouched, unpublished legacy extraction; never replace a doctor's edits. */
+export async function recoverExtraction(user:Actor,id:string){
+  const v=await draftVersion(user,id);
+  if(!isUntouchedLegacyExtraction(v))return {recovered:false};
+  if(!v.document?.sourceText)throw new HttpError(409,"NO_SOURCE_TEXT","Source text is unavailable. Upload or paste the original document again.");
+  const instructions=extractSourceFields(v.document.sourceText);
+  return db.$transaction(async tx=>{
+    await tx.$queryRaw`SELECT id FROM "CarePlanVersion" WHERE id=${id} FOR UPDATE`;
+    const current=await tx.carePlanVersion.findUniqueOrThrow({where:{id},include:{instructions:{include:{explanations:true}}}});
+    if(!isUntouchedLegacyExtraction(current))return {recovered:false};
+    await tx.careInstruction.deleteMany({where:{versionId:id}});
+    for(const i of instructions)await tx.careInstruction.create({data:{...i,followUpAt:i.followUpAt?new Date(i.followUpAt):null,versionId:id}});
+    await tx.carePlanVersion.update({where:{id},data:{method:sourceExtractionMethod}});
+    await tx.auditEvent.create({data:audit(user.id,"SOURCE_EXTRACTION_RECOVERED",id)});
+    return {recovered:true,instructions:instructions.length};
+  });
+}
+export async function extractNewDraft(user:Actor,id:string){
+  const v=await draftVersion(user,id);
+  if(!v.document?.sourceText)throw new HttpError(409,"NO_SOURCE_TEXT","Source text is unavailable. Upload or paste the original document again.");
+  const instructions=extractSourceFields(v.document.sourceText);
+  return db.$transaction(async tx=>{
+    await tx.$queryRaw`SELECT id FROM "CarePlan" WHERE id=${v.planId} FOR UPDATE`;
+    await tx.$queryRaw`SELECT id FROM "CarePlanVersion" WHERE id=${id} FOR UPDATE`;
+    if((await tx.carePlanVersion.findUniqueOrThrow({where:{id}})).status!=="DRAFT")throw new HttpError(409,"IMMUTABLE_VERSION","This draft has already changed. Refresh the plan review.");
+    const latest=await tx.carePlanVersion.findFirstOrThrow({where:{planId:v.planId},orderBy:{number:"desc"}});
+    // Preserve every previous edit in its original version, including translations.
+    await tx.carePlanVersion.update({where:{id},data:{status:"SUPERSEDED"}});
+    const next=await tx.carePlanVersion.create({data:{planId:v.planId,documentId:v.documentId,number:latest.number+1,method:sourceExtractionMethod}});
+    for(const i of instructions)await tx.careInstruction.create({data:{...i,followUpAt:i.followUpAt?new Date(i.followUpAt):null,versionId:next.id}});
+    await tx.auditEvent.create({data:audit(user.id,"SOURCE_REEXTRACTED_TO_NEW_DRAFT",next.id)});
+    return {id:next.id};
   });
 }
 export async function generateExplanations(user:Actor,id:string) {
@@ -240,6 +275,7 @@ export async function history(user:Actor,query:URLSearchParams) {
 export function safeError(e:unknown) {
   if(e instanceof HttpError) return {status:e.status,error:{code:e.code,message:e.message}};
   if(e instanceof z.ZodError) return {status:422,error:{code:"VALIDATION_ERROR",message:"Check the required fields and confirm voice transcripts before submitting."}};
+  if(e instanceof Error&&e.message==="SOURCE_REQUIRES_SMALLER_SECTIONS")return {status:422,error:{code:e.message,message:"Split this source into smaller documents before extracting its instructions."}};
   if(e instanceof ProviderFailure) return {status:503,error:{code:e.code,message:e.code==="DEMO_COMPARISON_UNSUPPORTED"?"Demo comparison supports the fictional medication fixtures only. This instruction requires care-team review or a configured live provider.":"The comparison or generation could not be completed. Your approved instructions are unchanged. Please retry or ask your care team."}};
   if(e instanceof Error && ["UNVERIFIABLE_SOURCE","UNSUPPORTED_CLINICAL_VALUE","UNVERIFIABLE_FOLLOW_UP_DATE"].includes(e.message))return {status:422,error:{code:e.message,message:"The corrected values must be supported by the original source passage. Leave missing details empty and request doctor clarification."}};
   if(e instanceof Prisma.PrismaClientKnownRequestError && e.code==="P2002") return {status:409,error:{code:"CONFLICT",message:"This record already exists."}};
