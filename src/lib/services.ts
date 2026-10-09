@@ -111,17 +111,26 @@ export async function extractNewDraft(user:Actor,id:string){
 }
 export async function generateExplanations(user:Actor,id:string) {
   const v=await draftVersion(user,id);
-  if(v.instructions.some(i=>i.reviewState!=="REVIEWED" || i.sourceUnclear)) throw new HttpError(409,"REVIEW_REQUIRED","Review the extracted fields and resolve unclear sources first.");
+  if(!v.instructions.length||v.instructions.some(i=>i.reviewState!=="REVIEWED" || i.sourceUnclear)) throw new HttpError(409,"REVIEW_REQUIRED","Review the extracted fields and resolve unclear sources first.");
   const drafts: {instructionId:string;language:Language;text:string;method:string;sourceFields:string[]}[]=[];
   for(const i of v.instructions) for(const language of languageCodes) {
+    if(i.explanations.some(e=>e.language===language))continue;
     const normalized=instructionSchema.parse({...Object.fromEntries(Object.keys(instructionSchema.shape).map(k=>[k,k==="followUpAt"?i.followUpAt?.toISOString() || null:i[k as keyof typeof i]]))});
     drafts.push({instructionId:i.id,language,...await draftExplanation(normalized,language)});
   }
   return db.$transaction(async tx=> {
     await tx.$queryRaw`SELECT id FROM "CarePlanVersion" WHERE id=${id} FOR UPDATE`;
     if((await tx.carePlanVersion.findUnique({where:{id}}))?.status!=="DRAFT") throw new HttpError(409,"IMMUTABLE_VERSION","Plan already approved.");
-    for(const d of drafts) await tx.instructionExplanation.upsert({where:{instructionId_language:{instructionId:d.instructionId,language:d.language}},create:{...d,status:"DRAFT"},update:{text:d.text,sourceFields:d.sourceFields,method:d.method,status:"DRAFT"}});
-    await tx.auditEvent.create({data:audit(user.id,"EXPLANATIONS_DRAFTED",id)}); return {generated:drafts.length};
+    let generated=0;
+    for(const d of drafts){
+      const existing=await tx.instructionExplanation.findUnique({where:{instructionId_language:{instructionId:d.instructionId,language:d.language}}});
+      // Generation is separate from review: retain saved translations and their
+      // review state instead of erasing them when the button is clicked again.
+      if(existing)continue;
+      await tx.instructionExplanation.create({data:{...d,status:"DRAFT"}});
+      generated++;
+    }
+    await tx.auditEvent.create({data:audit(user.id,"EXPLANATIONS_DRAFTED",id)}); return {generated};
   });
 }
 export async function reviewExplanation(user:Actor,id:string,body:unknown) {
@@ -136,14 +145,18 @@ export async function reviewExplanation(user:Actor,id:string,body:unknown) {
     await tx.auditEvent.create({data:audit(user.id,"EXPLANATION_REVIEWED",id)}); return row;
   });
 }
-export async function approve(user:Actor,id:string) {
+export async function approve(user:Actor,id:string,body:unknown={}) {
+  const options=z.object({publishSourceOnly:z.boolean().optional()}).strict().parse(body);
   const v=await draftVersion(user,id);
   return db.$transaction(async tx=> {
     await tx.$queryRaw`SELECT id FROM "CarePlan" WHERE id=${v.planId} FOR UPDATE`;
     await tx.$queryRaw`SELECT id FROM "CarePlanVersion" WHERE id=${id} FOR UPDATE`;
     const current=await tx.carePlanVersion.findUniqueOrThrow({where:{id},include:{instructions:{include:{explanations:true}}}});
     if(current.status!=="DRAFT") throw new HttpError(409,"IMMUTABLE_VERSION","This version has already been approved.");
-    if(!current.instructions.length || current.instructions.some(i=>i.sourceUnclear || i.reviewState!=="REVIEWED" || ["en","hi"].some(l=>!i.explanations.some(e=>e.language===l && e.status==="REVIEWED")))) throw new HttpError(409,"APPROVAL_BLOCKED","Every instruction and English/Hindi explanation needs review. Resolve unclear sources before approval.");
+    if(!current.instructions.length || current.instructions.some(i=>i.sourceUnclear || i.reviewState!=="REVIEWED"))throw new HttpError(409,"APPROVAL_BLOCKED","Review every extracted instruction and resolve unclear sources before approval.");
+    if(!options.publishSourceOnly && current.instructions.some(i=>!i.explanations.some(e=>e.language==="en"&&e.status==="REVIEWED")))throw new HttpError(409,"APPROVAL_BLOCKED","Review the English explanations, or explicitly confirm publication of the reviewed original instructions.");
+    // The patient view already falls back to the approved source quotation.
+    // Source-only publication leaves every unreviewed explanation intact/private.
     const row=await tx.carePlanVersion.update({where:{id},data:{status:"APPROVED",approvedAt:new Date()}});
     await tx.careInstruction.updateMany({where:{versionId:id},data:{reviewState:"APPROVED"}});
     // Optional translations stay private until reviewed; publishing never approves an empty draft.

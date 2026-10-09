@@ -506,7 +506,17 @@
     "Extract source into a new draft": "উৎস থেকে নতুন খসড়া তৈরি করুন",
     "source field extraction v1": "উৎস তথ্য নিষ্কাশন v1",
     "source field extraction v2": "উৎস তথ্য নিষ্কাশন v2",
-    "source field extraction v3": "উৎস তথ্য নিষ্কাশন v3"
+    "source field extraction v3": "উৎস তথ্য নিষ্কাশন v3",
+    "Generate optional explanations, or approve the reviewed original instructions directly. Only reviewed translations become patient-visible.": "ঐচ্ছিক ব্যাখ্যা তৈরি করুন অথবা যাচাই করা মূল নির্দেশ সরাসরি অনুমোদন করুন। শুধুমাত্র যাচাই করা অনুবাদ রোগী দেখতে পাবেন।",
+    "Draft explanations are ready below each instruction. Existing saved explanations are preserved; translations need their own review.": "প্রতিটি নির্দেশের নিচে খসড়া ব্যাখ্যা প্রস্তুত। সংরক্ষিত ব্যাখ্যা অক্ষত আছে; অনুবাদ আলাদাভাবে যাচাই করতে হবে।",
+    "Instructions still needing review or clarification:": "যাচাই বা ব্যাখ্যা এখনও প্রয়োজন:",
+    ". Open either action to see the remaining items.": ". বাকি নির্দেশ দেখতে যেকোনো কাজ খুলুন।",
+    "Review required": "যাচাই প্রয়োজন",
+    "Review every source instruction and resolve unclear text before continuing.": "এগোনোর আগে প্রতিটি উৎস নির্দেশ যাচাই করুন এবং অস্পষ্ট লেখা পরিষ্কার করুন।",
+    "Go to remaining review": "বাকি যাচাইয়ে যান",
+    "Approve reviewed instructions": "যাচাই করা নির্দেশ অনুমোদন করুন",
+    "You are approving the reviewed original instructions. Any reviewed explanations are included; unreviewed explanations and translations stay private. The patient will receive this care-plan version.": "আপনি যাচাই করা মূল নির্দেশ অনুমোদন করছেন। যাচাই করা ব্যাখ্যা অন্তর্ভুক্ত হবে; যাচাই না করা ব্যাখ্যা ও অনুবাদ ব্যক্তিগত থাকবে। রোগী এই পরিচর্যা পরিকল্পনার সংস্করণ পাবেন।",
+    "Publish reviewed instructions": "যাচাই করা নির্দেশ প্রকাশ করুন"
   },
   "hi": {
     ". Files stay private and require authorized access.": ". फ़ाइलें निजी रहती हैं और अधिकृत पहुंच की आवश्यकता होती है।",
@@ -1015,7 +1025,17 @@
     "Extract source into a new draft": "स्रोत से नया मसौदा बनाएं",
     "source field extraction v1": "स्रोत जानकारी निष्कर्षण v1",
     "source field extraction v2": "स्रोत जानकारी निष्कर्षण v2",
-    "source field extraction v3": "स्रोत जानकारी निष्कर्षण v3"
+    "source field extraction v3": "स्रोत जानकारी निष्कर्षण v3",
+    "Generate optional explanations, or approve the reviewed original instructions directly. Only reviewed translations become patient-visible.": "वैकल्पिक व्याख्याएं बनाएं या समीक्षा किए गए मूल निर्देश सीधे स्वीकृत करें। केवल समीक्षा किए गए अनुवाद मरीज को दिखेंगे।",
+    "Draft explanations are ready below each instruction. Existing saved explanations are preserved; translations need their own review.": "प्रत्येक निर्देश के नीचे व्याख्या के मसौदे तैयार हैं। पहले से सहेजी गई व्याख्याएं सुरक्षित हैं; अनुवादों की अलग समीक्षा जरूरी है।",
+    "Instructions still needing review or clarification:": "अभी समीक्षा या स्पष्टीकरण चाहिए:",
+    ". Open either action to see the remaining items.": ". बाकी निर्देश देखने के लिए कोई भी कार्रवाई खोलें।",
+    "Review required": "समीक्षा आवश्यक",
+    "Review every source instruction and resolve unclear text before continuing.": "आगे बढ़ने से पहले हर स्रोत निर्देश की समीक्षा करें और अस्पष्ट पाठ स्पष्ट करें।",
+    "Go to remaining review": "बाकी समीक्षा पर जाएं",
+    "Approve reviewed instructions": "समीक्षा किए गए निर्देश स्वीकृत करें",
+    "You are approving the reviewed original instructions. Any reviewed explanations are included; unreviewed explanations and translations stay private. The patient will receive this care-plan version.": "आप समीक्षा किए गए मूल निर्देश स्वीकृत कर रहे हैं। समीक्षा की गई व्याख्याएं शामिल होंगी; बिना समीक्षा की व्याख्याएं और अनुवाद निजी रहेंगे। मरीज को देखभाल योजना का यह संस्करण मिलेगा।",
+    "Publish reviewed instructions": "समीक्षा किए गए निर्देश प्रकाशित करें"
   },
   "or": {
     ". Files stay private and require authorized access.": ". ଫାଇଲ୍ଗୁଡିକ ଗୋପନୀୟ ରହିଥାଏ ଏବଂ ଅନୁମୋଦିତ ପ୍ରବେଶ ଆବଶ୍ୟକ।",
@@ -1524,7 +1544,17 @@
     "Extract source into a new draft": "ଉତ୍ସରୁ ନୂଆ ଖସଡ଼ା ତିଆରି କରନ୍ତୁ",
     "source field extraction v1": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v1",
     "source field extraction v2": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v2",
-    "source field extraction v3": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v3"
+    "source field extraction v3": "ଉତ୍ସ ତଥ୍ୟ ନିଷ୍କାସନ v3",
+    "Generate optional explanations, or approve the reviewed original instructions directly. Only reviewed translations become patient-visible.": "ଇଚ୍ଛାଧୀନ ବ୍ୟାଖ୍ୟା ତିଆରି କରନ୍ତୁ କିମ୍ବା ଯାଞ୍ଚ ହୋଇଥିବା ମୂଳ ନିର୍ଦ୍ଦେଶ ସିଧାସଳଖ ଅନୁମୋଦନ କରନ୍ତୁ। କେବଳ ଯାଞ୍ଚ ହୋଇଥିବା ଅନୁବାଦ ରୋଗୀଙ୍କୁ ଦେଖାଯିବ।",
+    "Draft explanations are ready below each instruction. Existing saved explanations are preserved; translations need their own review.": "ପ୍ରତ୍ୟେକ ନିର୍ଦ୍ଦେଶ ତଳେ ଖସଡ଼ା ବ୍ୟାଖ୍ୟା ପ୍ରସ୍ତୁତ। ସଂରକ୍ଷିତ ବ୍ୟାଖ୍ୟା ରହିଛି; ଅନୁବାଦ ଅଲଗା ଯାଞ୍ଚ ଆବଶ୍ୟକ।",
+    "Instructions still needing review or clarification:": "ଏପର୍ଯ୍ୟନ୍ତ ଯାଞ୍ଚ ବା ସ୍ପଷ୍ଟୀକରଣ ଆବଶ୍ୟକ:",
+    ". Open either action to see the remaining items.": ". ବାକି ନିର୍ଦ୍ଦେଶ ଦେଖିବାକୁ ଯେକୌଣସି କାର୍ଯ୍ୟ ଖୋଲନ୍ତୁ।",
+    "Review required": "ଯାଞ୍ଚ ଆବଶ୍ୟକ",
+    "Review every source instruction and resolve unclear text before continuing.": "ଆଗକୁ ଯିବା ପୂର୍ବରୁ ପ୍ରତ୍ୟେକ ମୂଳ ନିର୍ଦ୍ଦେଶ ଯାଞ୍ଚ କରନ୍ତୁ ଏବଂ ଅସ୍ପଷ୍ଟ ଲେଖା ସ୍ପଷ୍ଟ କରନ୍ତୁ।",
+    "Go to remaining review": "ବାକି ଯାଞ୍ଚକୁ ଯାଆନ୍ତୁ",
+    "Approve reviewed instructions": "ଯାଞ୍ଚ ହୋଇଥିବା ନିର୍ଦ୍ଦେଶ ଅନୁମୋଦନ କରନ୍ତୁ",
+    "You are approving the reviewed original instructions. Any reviewed explanations are included; unreviewed explanations and translations stay private. The patient will receive this care-plan version.": "ଆପଣ ଯାଞ୍ଚ ହୋଇଥିବା ମୂଳ ନିର୍ଦ୍ଦେଶ ଅନୁମୋଦନ କରୁଛନ୍ତି। ଯାଞ୍ଚ ହୋଇଥିବା ବ୍ୟାଖ୍ୟା ସାମିଲ ହେବ; ଯାଞ୍ଚ ହୋଇନଥିବା ବ୍ୟାଖ୍ୟା ଓ ଅନୁବାଦ ବ୍ୟକ୍ତିଗତ ରହିବ। ରୋଗୀ ଏହି ଯତ୍ନ ଯୋଜନା ସଂସ୍କରଣ ପାଇବେ।",
+    "Publish reviewed instructions": "ଯାଞ୍ଚ ହୋଇଥିବା ନିର୍ଦ୍ଦେଶ ପ୍ରକାଶ କରନ୍ତୁ"
   },
   "pa": {
     ". Files stay private and require authorized access.": ". ਫਾਈਲਾਂ ਨਿੱਜੀ ਹੀ ਰਹਿੰਦੀਆਂ ਹਨ ਅਤੇ ਅਧਿਕ੍ਰਿਤ ਪਹੁੰਚ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।",
@@ -2033,7 +2063,17 @@
     "Extract source into a new draft": "ਸਰੋਤ ਤੋਂ ਨਵਾਂ ਖਰੜਾ ਬਣਾਓ",
     "source field extraction v1": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v1",
     "source field extraction v2": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v2",
-    "source field extraction v3": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v3"
+    "source field extraction v3": "ਸਰੋਤ ਜਾਣਕਾਰੀ ਕੱਢਣਾ v3",
+    "Generate optional explanations, or approve the reviewed original instructions directly. Only reviewed translations become patient-visible.": "ਚਾਹਵੀਆਂ ਵਿਆਖਿਆਵਾਂ ਬਣਾਓ ਜਾਂ ਸਮੀਖਿਆ ਕੀਤੀਆਂ ਮੂਲ ਹਦਾਇਤਾਂ ਸਿੱਧੀਆਂ ਮਨਜ਼ੂਰ ਕਰੋ। ਸਿਰਫ਼ ਸਮੀਖਿਆ ਕੀਤੇ ਅਨੁਵਾਦ ਮਰੀਜ਼ ਨੂੰ ਦਿਖਾਈ ਦੇਣਗੇ।",
+    "Draft explanations are ready below each instruction. Existing saved explanations are preserved; translations need their own review.": "ਹਰ ਹਦਾਇਤ ਹੇਠ ਖਰੜਾ ਵਿਆਖਿਆਵਾਂ ਤਿਆਰ ਹਨ। ਸੰਭਾਲੀਆਂ ਵਿਆਖਿਆਵਾਂ ਸੁਰੱਖਿਅਤ ਹਨ; ਅਨੁਵਾਦਾਂ ਦੀ ਵੱਖਰੀ ਸਮੀਖਿਆ ਲੋੜੀਂਦੀ ਹੈ।",
+    "Instructions still needing review or clarification:": "ਅਜੇ ਸਮੀਖਿਆ ਜਾਂ ਸਪਸ਼ਟੀਕਰਨ ਚਾਹੀਦਾ ਹੈ:",
+    ". Open either action to see the remaining items.": ". ਬਾਕੀ ਹਦਾਇਤਾਂ ਵੇਖਣ ਲਈ ਕੋਈ ਵੀ ਕਾਰਵਾਈ ਖੋਲ੍ਹੋ।",
+    "Review required": "ਸਮੀਖਿਆ ਲੋੜੀਂਦੀ",
+    "Review every source instruction and resolve unclear text before continuing.": "ਅੱਗੇ ਵਧਣ ਤੋਂ ਪਹਿਲਾਂ ਹਰ ਮੂਲ ਹਦਾਇਤ ਦੀ ਸਮੀਖਿਆ ਕਰੋ ਅਤੇ ਅਸਪਸ਼ਟ ਲਿਖਤ ਸਪਸ਼ਟ ਕਰੋ।",
+    "Go to remaining review": "ਬਾਕੀ ਸਮੀਖਿਆ ਵੱਲ ਜਾਓ",
+    "Approve reviewed instructions": "ਸਮੀਖਿਆ ਕੀਤੀਆਂ ਹਦਾਇਤਾਂ ਮਨਜ਼ੂਰ ਕਰੋ",
+    "You are approving the reviewed original instructions. Any reviewed explanations are included; unreviewed explanations and translations stay private. The patient will receive this care-plan version.": "ਤੁਸੀਂ ਸਮੀਖਿਆ ਕੀਤੀਆਂ ਮੂਲ ਹਦਾਇਤਾਂ ਮਨਜ਼ੂਰ ਕਰ ਰਹੇ ਹੋ। ਸਮੀਖਿਆ ਕੀਤੀਆਂ ਵਿਆਖਿਆਵਾਂ ਸ਼ਾਮਲ ਹੋਣਗੀਆਂ; ਬਿਨਾਂ ਸਮੀਖਿਆ ਵਾਲੀਆਂ ਵਿਆਖਿਆਵਾਂ ਅਤੇ ਅਨੁਵਾਦ ਨਿੱਜੀ ਰਹਿਣਗੇ। ਮਰੀਜ਼ ਨੂੰ ਦੇਖਭਾਲ ਯੋਜਨਾ ਦਾ ਇਹ ਸੰਸਕਰਣ ਮਿਲੇਗਾ।",
+    "Publish reviewed instructions": "ਸਮੀਖਿਆ ਕੀਤੀਆਂ ਹਦਾਇਤਾਂ ਪ੍ਰਕਾਸ਼ਿਤ ਕਰੋ"
   },
   "ta": {
     ". Files stay private and require authorized access.": ". கோப்புகள் தனியுரிமைதான் மற்றும் அனுமதியுடைய அணுகல் தேவை.",
@@ -2542,7 +2582,17 @@
     "Extract source into a new draft": "மூலத்திலிருந்து புதிய வரைவை உருவாக்கவும்",
     "source field extraction v1": "மூல விவரங்கள் பிரித்தெடுத்தல் v1",
     "source field extraction v2": "மூல விவரங்கள் பிரித்தெடுத்தல் v2",
-    "source field extraction v3": "மூல விவரங்கள் பிரித்தெடுத்தல் v3"
+    "source field extraction v3": "மூல விவரங்கள் பிரித்தெடுத்தல் v3",
+    "Generate optional explanations, or approve the reviewed original instructions directly. Only reviewed translations become patient-visible.": "விருப்ப விளக்கங்களை உருவாக்கவும் அல்லது சரிபார்க்கப்பட்ட அசல் வழிமுறைகளை நேரடியாக ஒப்புதல் அளிக்கவும். சரிபார்க்கப்பட்ட மொழிபெயர்ப்புகள் மட்டுமே நோயாளிக்குக் காட்டப்படும்.",
+    "Draft explanations are ready below each instruction. Existing saved explanations are preserved; translations need their own review.": "ஒவ்வொரு வழிமுறையின் கீழும் வரைவு விளக்கங்கள் தயார். சேமித்த விளக்கங்கள் பாதுகாக்கப்பட்டுள்ளன; மொழிபெயர்ப்புகளை தனியாகச் சரிபார்க்க வேண்டும்.",
+    "Instructions still needing review or clarification:": "இன்னும் சரிபார்ப்பு அல்லது விளக்கம் தேவை:",
+    ". Open either action to see the remaining items.": ". மீதமுள்ள வழிமுறைகளைப் பார்க்க ஏதேனும் செயலைத் திறக்கவும்.",
+    "Review required": "சரிபார்ப்பு தேவை",
+    "Review every source instruction and resolve unclear text before continuing.": "தொடர்வதற்கு முன் ஒவ்வொரு மூல வழிமுறையையும் சரிபார்த்து தெளிவற்ற உரையைத் தெளிவுபடுத்தவும்.",
+    "Go to remaining review": "மீதமுள்ள சரிபார்ப்புக்குச் செல்லவும்",
+    "Approve reviewed instructions": "சரிபார்க்கப்பட்ட வழிமுறைகளுக்கு ஒப்புதல் அளிக்கவும்",
+    "You are approving the reviewed original instructions. Any reviewed explanations are included; unreviewed explanations and translations stay private. The patient will receive this care-plan version.": "நீங்கள் சரிபார்க்கப்பட்ட அசல் வழிமுறைகளுக்கு ஒப்புதல் அளிக்கிறீர்கள். சரிபார்க்கப்பட்ட விளக்கங்கள் சேர்க்கப்படும்; சரிபார்க்கப்படாத விளக்கங்களும் மொழிபெயர்ப்புகளும் தனிப்பட்டதாக இருக்கும். நோயாளிக்கு இந்த பராமரிப்புத் திட்டப் பதிப்பு கிடைக்கும்.",
+    "Publish reviewed instructions": "சரிபார்க்கப்பட்ட வழிமுறைகளை வெளியிடவும்"
   },
   "te": {
     ". Files stay private and require authorized access.": ". ఫైళ్లు ప్రైవేట్‌గా ఉంటాయి మరియు అధికృత ప్రాప్తి అవసరం.",
@@ -3051,6 +3101,16 @@
     "Extract source into a new draft": "మూలం నుండి కొత్త ముసాయిదా సృష్టించండి",
     "source field extraction v1": "మూల వివరాల సంగ్రహణ v1",
     "source field extraction v2": "మూల వివరాల సంగ్రహణ v2",
-    "source field extraction v3": "మూల వివరాల సంగ్రహణ v3"
+    "source field extraction v3": "మూల వివరాల సంగ్రహణ v3",
+    "Generate optional explanations, or approve the reviewed original instructions directly. Only reviewed translations become patient-visible.": "ఐచ్ఛిక వివరణలను సృష్టించండి లేదా సమీక్షించిన అసలు సూచనలను నేరుగా ఆమోదించండి. సమీక్షించిన అనువాదాలు మాత్రమే రోగికి కనిపిస్తాయి.",
+    "Draft explanations are ready below each instruction. Existing saved explanations are preserved; translations need their own review.": "ప్రతి సూచన కింద ముసాయిదా వివరణలు సిద్ధంగా ఉన్నాయి. సేవ్ చేసిన వివరణలు భద్రంగా ఉన్నాయి; అనువాదాలను విడిగా సమీక్షించాలి.",
+    "Instructions still needing review or clarification:": "ఇంకా సమీక్ష లేదా వివరణ అవసరం:",
+    ". Open either action to see the remaining items.": ". మిగిలిన సూచనలను చూడటానికి ఏ చర్యనైనా తెరవండి.",
+    "Review required": "సమీక్ష అవసరం",
+    "Review every source instruction and resolve unclear text before continuing.": "కొనసాగించే ముందు ప్రతి మూల సూచనను సమీక్షించి అస్పష్టమైన వచనాన్ని స్పష్టం చేయండి.",
+    "Go to remaining review": "మిగిలిన సమీక్షకు వెళ్లండి",
+    "Approve reviewed instructions": "సమీక్షించిన సూచనలను ఆమోదించండి",
+    "You are approving the reviewed original instructions. Any reviewed explanations are included; unreviewed explanations and translations stay private. The patient will receive this care-plan version.": "మీరు సమీక్షించిన అసలు సూచనలను ఆమోదిస్తున్నారు. సమీక్షించిన వివరణలు చేర్చబడతాయి; సమీక్షించని వివరణలు మరియు అనువాదాలు ప్రైవేట్‌గా ఉంటాయి. రోగికి ఈ సంరక్షణ ప్రణాళిక సంచిక అందుతుంది.",
+    "Publish reviewed instructions": "సమీక్షించిన సూచనలను ప్రచురించండి"
   }
 }

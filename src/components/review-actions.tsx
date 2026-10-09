@@ -1,0 +1,22 @@
+"use client";
+import {useId,useRef,useState} from "react";
+import {Languages,ShieldCheck} from "lucide-react";
+import {UiText} from "./ui-text";
+type Instruction={id:string;title:string;reviewState:string;sourceUnclear:boolean};
+type Props={versionId:string;instructions:Instruction[];pending:boolean;mutate:(path:string,body?:unknown)=>Promise<unknown>;onApproved:()=>void};
+export function ReviewActions({versionId,instructions,pending,mutate,onApproved}:Props){
+ const dialog=useRef<HTMLDialogElement>(null),heading=useId();
+ const [action,setAction]=useState<"generate"|"approve">("approve"),[message,setMessage]=useState("");
+ const blockers=instructions.filter(i=>i.reviewState!=="REVIEWED"||i.sourceUnclear);
+ const open=(next:"generate"|"approve")=>{setAction(next);setMessage("");dialog.current?.showModal();};
+ async function generate(){
+  if(!instructions.length||blockers.length){open("generate");return;}
+  setMessage("");try{await mutate(`versions/${versionId}/generate`);setMessage("Draft explanations are ready below each instruction. Existing saved explanations are preserved; translations need their own review.");requestAnimationFrame(()=>{const field=document.querySelector<HTMLTextAreaElement>(".explanation-review textarea");field?.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"center"});field?.focus({preventScroll:true});});}catch(error){setMessage(error instanceof Error?error.message:"Please try again.");}
+ }
+ async function publish(){
+  try{await mutate(`versions/${versionId}/approve`,{publishSourceOnly:true});dialog.current?.close();onApproved();}catch(error){setMessage(error instanceof Error?error.message:"Please try again.");}
+ }
+ function review(){dialog.current?.close();const first=blockers[0];if(first){const card=document.getElementById(`review-instruction-${first.id}`);card?.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"center"});card?.querySelector<HTMLButtonElement>("button")?.focus({preventScroll:true});}}
+ return <section className="panel approval-bar"><div><h2><UiText>{"Publish this reviewed version"}</UiText></h2><p><UiText>{"Generate optional explanations, or approve the reviewed original instructions directly. Only reviewed translations become patient-visible."}</UiText></p></div><div className="card-buttons"><button className="button secondary" disabled={pending} onClick={()=>void generate()}><Languages size={18}/><UiText>{"Generate draft explanations"}</UiText></button><button className="button primary" disabled={pending} onClick={()=>open("approve")}><ShieldCheck size={18}/><UiText>{"Approve and publish"}</UiText></button></div>{message&&<p role="status"><UiText>{message}</UiText></p>}{blockers.length>0&&<p className="amber"><UiText>{"Instructions still needing review or clarification: "}</UiText>{blockers.length}<UiText>{". Open either action to see the remaining items."}</UiText></p>}
+ <dialog ref={dialog} aria-labelledby={heading} className="review-action-dialog"><h2 id={heading}><UiText>{blockers.length||!instructions.length?"Review required":action==="approve"?"Approve reviewed instructions":"Generate draft explanations"}</UiText></h2>{blockers.length||!instructions.length?<><p><UiText>{"Review every source instruction and resolve unclear text before continuing."}</UiText></p><ul>{blockers.map(i=><li key={i.id}><strong>{i.title}</strong><br/><UiText>{i.sourceUnclear?"Doctor clarification required.":"Confirm extraction review"}</UiText></li>)}</ul><div className="card-buttons"><button className="button secondary" onClick={()=>dialog.current?.close()}><UiText>{"Close"}</UiText></button><button className="button primary" onClick={review}><UiText>{"Go to remaining review"}</UiText></button></div></>:<><p><UiText>{"You are approving the reviewed original instructions. Any reviewed explanations are included; unreviewed explanations and translations stay private. The patient will receive this care-plan version."}</UiText></p>{message&&<p role="alert"><UiText>{message}</UiText></p>}<div className="card-buttons"><button className="button secondary" disabled={pending} onClick={()=>dialog.current?.close()}><UiText>{"Cancel"}</UiText></button><button className="button primary" disabled={pending} onClick={()=>void publish()}><UiText>{"Publish reviewed instructions"}</UiText></button></div></>}</dialog></section>;
+}

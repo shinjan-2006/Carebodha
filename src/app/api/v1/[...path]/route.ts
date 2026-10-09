@@ -17,7 +17,7 @@ async function handler(req:Request, ctx:{params:Promise<{path:string[]}>}) {
   try {
     const {path:p}=await ctx.params; const u=await actor(req.headers); const m=req.method;
     if(m!=="GET") {sameOrigin(req);await limit(u,p[0]);}
-    const body=async()=>{const data=await bytes(req,120000);try{return JSON.parse(new TextDecoder().decode(data));}catch{throw new HttpError(422,"INVALID_JSON","Provide a valid JSON request.");}};
+    const body=async(optional=false)=>{const data=await bytes(req,120000);if(optional&&!data.length)return {};try{return JSON.parse(new TextDecoder().decode(data));}catch{throw new HttpError(422,"INVALID_JSON","Provide a valid JSON request.");}};
     let data:unknown;
     if(m==="GET" && p[0]==="workspace") data=await service.workspace(u,new URL(req.url).searchParams.get("patientId") || undefined);
     else if(m==="POST" && p[0]==="patients" && p[1]==="assign" && !p[2]) data=await service.assignPatient(u,await body());
@@ -33,7 +33,7 @@ async function handler(req:Request, ctx:{params:Promise<{path:string[]}>}) {
     else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="generate") data=await service.generateExplanations(u,p[1]);
     else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="extract" && !p[3]) data=await service.recoverExtraction(u,p[1]);
     else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="extract-new" && !p[3]) data=await service.extractNewDraft(u,p[1]);
-    else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="approve") data=await service.approve(u,p[1]);
+    else if(m==="POST" && p[0]==="versions" && p[1] && p[2]==="approve") data=await service.approve(u,p[1],await body(true));
     else if(m==="PATCH" && p[0]==="explanations" && p[1]) data=await service.reviewExplanation(u,p[1],await body());
     else if(m==="POST" && p[0]==="teachback") data=await service.submitTeachBack(u,await body());
     else if(m==="POST" && p[0]==="invitations" && p[1]==="accept") data=await service.acceptInvitation(u,await body());
