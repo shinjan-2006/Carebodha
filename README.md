@@ -2,21 +2,87 @@
 
 **Understand your care. Follow it with confidence.**
 
-A working Next.js application with patient, clinician, and family workspaces, PostgreSQL persistence, email/password sign-in without OTP, private document storage, and a separate PostgreSQL-backed worker. The default normal environment starts with empty accounts and supports clinician-led processing of real source documents without a paid AI key. Optional AI credentials enable automated drafting and comparison.
+Developed by **Team Inferno** for **HackOverflow 10.0**, conducted by **NIT Durgapur**.
 
-On Vercel, the app uses hosted PostgreSQL, private Vercel Blob storage, and durable Workflow jobs instead of local disk and a separate worker. Authenticated direct uploads retain the 10 MB file limit. Document extraction only creates drafts; clinician review and approval are still required. Scheduled reminder workflows check cancellation and the current approved plan before creating notifications.
+[Visit the working prototype](https://carebodha.vercel.app/)
 
-The Vercel build applies database migrations and initializes a normal environment guard. Configure `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `APP_MODE=normal`, `AI_PROVIDER=manual`, `OCR_ENABLED=false`, `STORAGE_DRIVER=vercel-blob`, and the connected private Blob store credential. An optional sensitive `HOSTED_TEST_CLINICIANS` value provisions up to three operator-controlled, explicitly fictional `TEST —` accounts; it cannot grant roles through registration. Never commit environment files, credentials, uploaded medical documents, or database exports.
+<img src="public/carebodha-logo.jpeg" alt="CareBodha logo" width="240">
 
-English, Hindi, Bengali, Odia, Telugu, Punjabi, and Tamil are available in the visible language selector. Navigation and sign-in labels change language; approved care text uses reviewed translations. When a selected translation is unavailable, the app explicitly shows the approved English text rather than presenting it as a translation.
+## The idea
 
-The UI follows Matter Immersive's pearl surfaces, oversized Archivo headings, blue italic Instrument Serif, thin editorial rules, and segmented glass ribbon. See [design notes](docs/DESIGN.md) and [verification evidence](docs/VERIFICATION.md) for the redesign's source, screen coverage, and checks.
+A prescription is only useful when a patient understands it. Medicine quantities, schedules, unfamiliar terminology, follow-up instructions, and language barriers can make an existing care plan difficult to follow. Care teams also need to understand which details the patient understood and which need clarification.
+
+CareBodha connects **doctor-approved instructions, accessible reading and listening, and teach-back** in one application. Patients explain their understanding in their own words. The app compares supported details with the approved care plan and identifies matching answers, conflicts, missing information, and questions that require clinician review.
+
+Our goal is clearer communication between patients, medical experts, and trusted family members. CareBodha explains an existing care plan; it does not diagnose, prescribe, or replace clinical judgment.
+
+## How it works
+
+1. An authorized medical expert connects a registered patient by email or username.
+2. The expert uploads a PDF/image or enters instruction text. Extraction creates drafts and structured fields.
+3. The clinician reviews medicine names, doses, units, frequency, timing, duration, and explanations, then publishes an approved version.
+4. The patient reads or listens to the published care instructions.
+5. The patient explains their understanding by typing or supported browser voice transcription.
+6. CareBodha checks supported fields, records the result, and supports clarification, follow-up visits, and reminders.
+
+## Features
+
+| Patients and family | Medical experts |
+| --- | --- |
+| Overview and approved care plans | Assigned patients and patient connection |
+| Language selection and read-aloud instructions | Private document uploads and extraction review |
+| Own-words teach-back with supported automatic checks | Draft explanations and reviewed publication |
+| Follow-up visits and medicine reminders | Teach-back review and clarification queue |
+| Revocable family assistance permissions | Versioned plans and approval history |
+| Notifications and language/access settings | Access restricted to assigned records |
+
+### Accounts
+
+Routine sign-in uses an **email or username and CareBodha password**. New patient accounts verify their mobile number by **OTP** and choose a password of at least 12 characters. Forgotten-password recovery sends an OTP only to the registered, verified phone number. Existing phone-only accounts can use recovery to set their first password.
+
+Medical-expert accounts require administrator provisioning. Public patient registration cannot grant clinician access. Configured Twilio Verify handles phone verification; trial accounts may restrict delivery to provider-verified numbers.
+
+### Languages and audio
+
+The interface supports **English, Hindi, Bengali, Odia, Telugu, Punjabi, and Tamil**. Reading/listening uses reviewed explanations or the published instruction. Supported medication phrases can be localized with a fixed vocabulary that preserves names and quantities. Complex instructions without a reviewed translation retain complete approved English wording so warnings are not discarded.
+
+Native browser voices are used when available; configured **Sarvam** speech generation provides audio fallback. Transcription depends on browser support and microphone permission. Audio support and availability of a reviewed translation are separate capabilities.
+
+### Care and privacy boundaries
+
+- Extraction creates drafts; clinician approval is required before publication.
+- Missing fields remain missing rather than being guessed.
+- Teach-back checks understanding of supported details. A match is not proof of adherence or medical safety; unsupported or ambiguous answers may require review.
+- Patients see approved care instructions, not original uploaded document pages or source-document panels. Authorized clinicians retain source access for review.
+- Plan versions preserve history. Changes require a new reviewed version.
+- Family permissions are checked on the server and can be revoked. Family answers remain separate from patient answers.
+- Reminders use approved instructions and user-selected schedules. In-app notifications are supported; SMS reminders require a separately configured messaging service. Twilio Verify alone does not send medicine reminders.
+
+## Technology and architecture
+
+**Frontend:** Next.js 16, React, TypeScript, shared responsive styles, and Three.js landing visuals with reduced-motion support.
+
+**Backend:** Next.js route handlers, Better Auth, Prisma, PostgreSQL, private storage, and background processing.
+
+**Document processing:** PDF text extraction, optional Tesseract OCR, structured extraction, and clinician review.
+
+**Hosted deployment:** Vercel, hosted PostgreSQL, private Vercel Blob storage, and durable Workflow jobs. Local development uses a separate worker and private filesystem storage.
+
+```mermaid
+flowchart LR
+    Expert[Medical expert] --> Review[Upload and draft review]
+    Review --> Approved[Approved plan in PostgreSQL]
+    Approved --> Patient[Patient reads or listens]
+    Patient --> Teachback[Own-words teach-back]
+    Teachback --> Check[Supported field comparison]
+    Check --> Results[Results and clarification]
+    Results --> Expert
+    Approved --> Reminders[Scheduled reminders]
+```
 
 ## Run locally
 
-Use Node.js 22.16+ (24 LTS recommended), pnpm, and either Docker or the included local PostgreSQL helper. The committed `pnpm-lock.yaml` and exact package versions make installs repeatable. Chrome is used by the Playwright suite.
-
-From this project directory:
+Use **Node.js 24**, pnpm, and PostgreSQL. Install Chrome for Playwright checks.
 
 ```powershell
 pnpm install --frozen-lockfile
@@ -24,163 +90,67 @@ pnpm setup:env
 pnpm db:generate
 ```
 
-In the Codex Windows desktop environment, replace `pnpm` with `.\scripts\pnpm.ps1` in each command; the wrapper finds the bundled pnpm automatically. For example:
+Start PostgreSQL with Docker or keep the included helper running in another terminal:
 
 ```powershell
-.\scripts\pnpm.ps1 install --frozen-lockfile
-.\scripts\pnpm.ps1 setup:env
-```
-
-`setup:env` creates `.env` with a random authentication secret and preserves an existing `.env`. Provider credentials are empty. The default database URL is a local development credential and must be replaced for deployment.
-
-Choose one database startup method:
-
-```powershell
-# Recommended: PostgreSQL 17 with a durable Docker volume
 docker compose up -d postgres
-```
-
-Or, when Docker is unavailable, run this in a terminal and leave it running:
-
-```powershell
+# Alternative:
 pnpm db:local
 ```
 
-The optional helper runs a real loopback-only PostgreSQL server and retains data in `.local-postgres`. Its npm distribution is `embedded-postgres@18.4.0-beta.17`; Docker is the stable deployment-independent option. The normal local database is `carebodha_normal`; historical demo data remains in a separate database. The helper creates databases using UTF-8 for all seven languages.
-
-Then:
+Initialize the normal environment and start the web app:
 
 ```powershell
 pnpm setup:normal
-```
-
-Run the web application and worker in separate terminals:
-
-```powershell
-# Terminal 1
 pnpm dev
 ```
 
+Run the worker in a separate terminal:
+
 ```powershell
-# Terminal 2
 pnpm worker
 ```
 
-Open [CareBodha](http://localhost:3000). `BETTER_AUTH_URL` must match the browser origin exactly; use `localhost`, as configured, for sign-in and invitations. The server binds to loopback by default.
+Open [localhost:3000](http://localhost:3000). `BETTER_AUTH_URL` must match the browser origin. `scripts/pnpm.ps1` provides a pnpm wrapper for the Codex Windows environment.
 
-Create a patient account with your email and a CareBodha password (at least 12 characters). Your Gmail password is not requested. A server operator must provision a clinician using the controlled `clinician:provision` command below; public registration cannot grant clinician permissions. The expert can then sign in at `/expert/signin`, open **Connect patient**, and connect a registered patient by their email address or username. Connection is immediate and does not require patient acceptance. Upload source instructions, review the extracted fields and explanations, and approve the version to publish it to the patient.
+## Configuration
 
-With `AI_PROVIDER=manual`, uploads produce exact source paragraphs with empty clinical fields. Clinicians choose the instruction type, enter source-grounded fields, prepare explanation drafts, supply and review English/Hindi translations, and optionally review additional languages. Only reviewed translations are published. Teach-back answers are persisted as **care-team review needed**, with an actual clarification request and clinician notification; no automated match is inferred. Configured `openai-compatible` processing remains available.
+Keep credentials in ignored `.env` files or deployment environment variables.
 
-`pnpm verify:normal` verifies this complete path against the separate `carebodha_normal_test` database on port 3001 after `pnpm build`. It never seeds the active normal database. Historical demo acceptance checks require the isolated demo environment.
-
-## Optional isolated fictional demo accounts
-
-| Workspace | Email |
+| Capability | Configuration |
 | --- | --- |
-| Patient: Asha Sharma | `patient@carebodha.demo` |
-| Clinician: Dr. Ananya Sen | `clinician@carebodha.demo` |
-| Family: Priya Sharma | `family@carebodha.demo` |
-| Additional patient: Ravi Kumar | `ravi@carebodha.demo` |
-| Additional patient: Meera Patel | `meera@carebodha.demo` |
+| Database and sessions | `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `APP_MODE` |
+| Local private storage | `STORAGE_DRIVER=local`, `PRIVATE_STORAGE_PATH` |
+| Hosted storage | `STORAGE_DRIVER=vercel-blob` and a connected private Blob store |
+| OCR and optional AI adapter | `OCR_ENABLED`, `AI_PROVIDER`, optional `AI_BASE_URL`, `AI_MODEL`, `AI_API_KEY` |
+| Sarvam speech | `TTS_PROVIDER=sarvam`, `SARVAM_API_KEY` |
+| Phone verification and recovery | `PHONE_OTP_PROVIDER=twilio-verify`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` |
+| Optional SMS medicine reminders | `SMS_PROVIDER=twilio`, account credentials, `TWILIO_MESSAGING_SERVICE_SID` |
 
-The password is `DEMO_SEED_PASSWORD` from `.env` (the example uses `CareBodha-demo-2026!`). Demo account buttons fill those fictional credentials and still perform real authenticated sign-in. They are only shown when `APP_MODE=demo`. Never reuse this password for real accounts or expose a demo database containing real medical information.
+The Vercel build generates Prisma, applies migrations, initializes the hosted environment, and builds the app. Never commit API keys, patient documents, credentials, or database exports.
 
-The seed provides three synthetic documents, approved English/Hindi explanations, a prepared draft for Asha, clinician assignments, a consent fixture for Priya to assist Ravi, and a welcome notification. Asha can invite Priya separately and revoke that grant. Seeding preserves existing records and does not reset attempts or re-enable revoked access. `demo-documents/` contains text and PDF copies. PDFs are parsed by the same private upload/worker path as normal documents. Paste a text file's content into **Document upload**; `.txt` files themselves are not accepted as file uploads.
-
-Demo extraction only recognizes these exact fictional sources (whitespace may vary). Other input reports `DEMO_UNSUPPORTED_SOURCE`. Demo teach-back checks recognized English/Hindi medication phrases. Unsupported medication answers return `UNCLEAR` with a limitation; non-medication demo comparisons report `DEMO_COMPARISON_UNSUPPORTED` instead of fabricating findings. A configured live adapter can compare source-grounded non-medication instructions. A match concerns the checked details only. It never claims adherence or clinical safety.
-
-## Approval and care boundaries
-
-The source is the doctor's existing plan. Extraction fields must appear in the source passage; empty fields remain empty. Explicit follow-up dates/times must be verifiable in the source. Unclear sources cannot be approved. Clinicians review each extraction and both language explanations before publication.
-
-Approved versions are immutable. **Create new draft version** copies the current content into a new version; the previous version remains published until the replacement is approved. Changing an extraction invalidates its explanation reviews. Approval locks the plan/version and publishes instructions, explanations, and an approval record atomically. Historical attempts retain their original instruction and version references.
-
-Teach-back output is schema-validated, restricted to known IDs and approved values, and grounded in exact transcript quotes. The server creates explanations and clarifications from validated fields and the approved source, rather than displaying freeform model medical advice. Explicit dose/unit checks take precedence over semantic results. Missing details are `INCOMPLETE`, ambiguous answers are `UNCLEAR`, conflicts are `MISMATCH`, and unclear sources require clinician review. There are no confidence percentages.
-
-Caregiver and assisted-patient attempts have separate person types. A caregiver match never changes a patient-understanding flag; no such global flag is maintained.
-
-Family invitations contain random single-use tokens. Only their SHA-256 hashes are stored. Invitations expire after 48 hours, are bound to the invited email, and require authenticated acceptance. Server checks read active grants on every request. Revocation blocks subsequent access immediately; open family screens refresh every five seconds and on focus. A browser cannot erase information someone already read before revocation.
-
-Missing instruction details show: “This information is not included in your approved care plan. Please ask your care team.” Contradictory or unclear sources show: “Doctor clarification required.” No diagnosis, prescription changes, missed-dose advice, side effects, interactions, or urgency scores are generated.
-
-## Documents, jobs, reminders, and notifications
-
-PDF, PNG, and JPEG uploads are capped at 10 MB and checked by signature. The local adapter stores random keys outside `public/`. Downloads require an assigned clinician session. `STORAGE_DRIVER=s3` enables the private S3 adapter; set the `S3_*` values in `.env`, use a private bucket, and provide durable storage for the separate worker.
-
-`pdf-parse` extracts text from actual PDFs and records page references. Image OCR uses Tesseract with English/Hindi when `OCR_ENABLED=true`; language-model downloads/cache access must be available. When OCR is disabled or cannot process a document, the job reports failure and the UI offers manual text entry. Scanned PDFs without usable text also request manual entry; they are not presented as successful text extraction.
-
-The worker uses `FOR UPDATE SKIP LOCKED` claims, 90-second leases renewed every 15 seconds, at most three attempts, delayed retries, and unique idempotency keys. Draft creation and job completion commit together. Expired leases can be reclaimed; exhausted leases report failure. Permanent unsupported-demo/OCR/configuration errors fail without fabricated results.
-
-Reminders originate from an approved instruction and an explicit user-selected timestamp. A preference is not a prescribed schedule. Times are stored in UTC and displayed in the patient's selected timezone. Local time entry clearly uses the device timezone. A reminder for a superseded version is not delivered as a current-plan reminder.
-
-The worker creates in-app notifications exactly once per reminder/recipient. Scheduled, notification-created, read, and reported-completed timestamps remain separate. This application does not claim email, SMS, or push delivery.
-
-## Normal environment and optional live AI
-
-Use a **separate PostgreSQL database** and set `APP_MODE=normal`. An environment-guard record prevents mixing normal and demo data. Public registration always produces a patient account, regardless of requested role. Clinicians must be provisioned by an operator who controls the server environment.
-
-Set `CLINICIAN_EMAIL`, `CLINICIAN_NAME`, and a 12+ character `CLINICIAN_PASSWORD` securely in the process environment. Optionally set `CLINICIAN_USERNAME` (3–30 letters, numbers, or underscores). Both email and username support password sign-in, without OTP. Then:
+## Verification and fictional fixtures
 
 ```powershell
-pnpm db:migrate
-pnpm clinician:provision
-```
-
-After a patient registers, the expert can connect them directly in **Connect patient**. Patients can pick an optional username during registration, or choose one in **Language & access** later. Usernames are case-insensitive and cannot be changed once chosen. Existing email-only accounts continue to work.
-
-For operator-managed assignments, set `PATIENT_EMAIL` and `CLINICIAN_EMAIL` and run:
-
-```powershell
-pnpm patient:assign
-```
-
-For live AI, configure `AI_PROVIDER=openai-compatible`, `AI_BASE_URL`, `AI_MODEL`, and `AI_API_KEY`. Use a model/provider that supports Chat Completions JSON output, `temperature: 0`, and `store: false`. The default URL targets OpenAI's compatible API, but no live provider was called during verification. Extraction, draft simplification, draft Hindi translation, and teach-back comparison are separate operations. Calls have 15-second timeouts and at most two attempts. Application validators still run after provider JSON output; JSON mode alone does not enforce this schema. See the official [JSON output documentation](https://developers.openai.com/api/docs/guides/structured-outputs) and [Chat Completions API](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
-
-Missing credentials, refusals, malformed/unverifiable output, and timeouts produce clear failure states. They never fall back to a fabricated success. Translation drafts require clinician review; live medical accuracy and language equivalence have not been independently validated.
-
-Provider secrets remain on the server. Application logging excludes source text, transcripts, audio, tokens, passwords, and request bodies. Next development request/query logging and browser forwarding are disabled to avoid leaking invitation URLs. Configure any deployment proxy/logging layer to preserve the same rule.
-
-## Verification
-
-Keep the web app, database, and worker running:
-
-```powershell
-pnpm test
-pnpm test:e2e
 pnpm typecheck
+pnpm test
 pnpm build
+pnpm verify:normal
 ```
 
-Playwright uses installed Chrome, real authentication cookies, HTTP endpoints, and PostgreSQL assertions. Acceptance tests use uniquely named fictional test accounts; they are retained for persistence evidence. Never point these tests at a real patient database. The suite requires demo mode and blocks execution when the test process has `NODE_ENV=production`.
+Run database/browser workflows only against isolated test databases. Phone lifecycle tests use `PHONE_AUTH_TEST_DATABASE_URL` pointing to local `carebodha_normal_test` and a simulated SMS provider; they do not establish handset delivery. Multilingual checks cover medication reading, audio routing, and supported teach-back details in all seven languages.
 
-To verify restart persistence after the acceptance suite: stop and restart the web app and worker, retain the database/storage, then run `pnpm verify:restart`. It signs in through the real API and checks persisted versions, attempts, and resolved questions against database counts. PostgreSQL persistence was verified after an actual web/worker restart.
-
-For a build preview, stop the development web server before:
+Optional local fictional doctors and prescriptions:
 
 ```powershell
-pnpm build
-pnpm start
+pnpm exec tsx scripts/provision-test-doctors.ts
+pnpm exec tsx scripts/provision-test-prescriptions.ts
 ```
 
-Leave the worker and database running. On Windows, stop web/worker processes before regenerating Prisma if its query-engine DLL is locked. The development watcher excludes database, private-storage, and test-output directories.
+Fixtures are for testing, never actual patient care. Credentials are stored in ignored local files. See [sample prescriptions](docs/sample-prescriptions/README.md), [API documentation](docs/API.md), and [verification notes](docs/VERIFICATION.md). Historical notes may describe earlier prototype behavior; the current implementation is authoritative.
 
-Results, limitations, and observed visual checks are recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md). The API is documented in [docs/API.md](docs/API.md), with a [hackathon walkthrough](docs/DEMO.md).
+## Team and event
 
-## Visual reference and deployment limits
+**Team Inferno developed CareBodha for HackOverflow 10.0, conducted by NIT Durgapur.**
 
-The public [AI Studio preview](https://www.getlayers.ai/layer/ai-studio) was inspected before implementation. Its source/prompt is locked. CareBodha uses the visible violet card composition and the public description's chrome star, dark space, drifting particles, and camera motion. No unlocked template code or premium assets were obtained. Exact source proportions, typography, scroll sequence, and full interaction fidelity could not be inspected or verified.
-
-The design tokens in `src/app/globals.css` apply across all roles. Landing motion uses Three.js, passive scrolling, reduced-motion support, and a static star fallback. Application screens use stable layouts, approved-source text, keyboard focus, labeled controls, and larger patient-facing copy.
-
-This deliverable is a local, functional application. Public deployment was not performed. Deploy the web app and a separate worker against PostgreSQL and private storage with appropriate infrastructure configuration and independent security/clinical/privacy review. It is not described as production-ready, clinically validated, or healthcare-regulation compliant.
-
-
-### Local dummy medical experts
-
-`pnpm exec tsx scripts/provision-test-doctors.ts` creates three explicitly labeled TEST clinician accounts only in the local normal database. Their generated passwords are retained in the ignored `.local-test-doctors.json` file and displayed by the command. Sign in at `/expert/signin`; these are local testing accounts. The command verifies existing fixtures and never overwrites a different account.
-# Local fictional prescriptions
-
-After provisioning the local test doctors, run `pnpm exec tsx scripts/provision-test-prescriptions.ts`. This adds three clearly marked fictional patients, assigns one to each test doctor, and creates a published training care plan plus a separate draft through the existing approval guard. It only runs against the local `carebodha_normal` database and never replaces existing accounts or care plans.
-
-Prescription sources and teach-back exercises are in `docs/sample-prescriptions/README.md`. Patient passwords are generated locally and stored in ignored `.local-test-patients.json`. Training medicine names are fictional and these records are not for actual patient care.
+CareBodha is a working hackathon prototype. Clinical validation, security/privacy review, and applicable operational requirements remain necessary before real-world healthcare deployment.
