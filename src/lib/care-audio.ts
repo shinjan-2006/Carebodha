@@ -2,6 +2,7 @@ import {z} from "zod";
 import {languageCodes,languageInfo,type Language} from "./languages";
 import {HttpError,approvedInstruction,type Actor} from "./security";
 import {selectApprovedText} from "./approved-text";
+import {patientCareText} from "./patient-care-text";
 
 export function approvedAudioText(explanations:{language:string;status:string;text:string}[],source:string,language:Language){
  return selectApprovedText(explanations,source,language).text;
@@ -23,6 +24,6 @@ export async function careAudio(user:Actor,body:unknown){
  // The client supplies identifiers, never arbitrary text or an unreviewed translation.
  const input=z.object({instructionId:z.string().min(1).max(100),language:z.enum(languageCodes)}).strict().parse(body);
  const instruction=await approvedInstruction(user,input.instructionId);
- const approved=selectApprovedText(instruction.explanations,instruction.sourcePassage,input.language);
+ const approved=patientCareText(instruction,input.language);
  return synthesizeCareAudio(approved.text,approved.language);
 }

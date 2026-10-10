@@ -3,6 +3,7 @@ import { db, mode } from "./db";
 import { createHash } from "node:crypto";
 import type { User } from "@prisma/client";
 import {authOrigin} from "./auth-origin";
+import {isSourcePageInstruction} from "./patient-instructions";
 export class HttpError extends Error { constructor(public status: number, public code: string, message: string) { super(message); } }
 export type Actor = User;
 export async function actor(headers: Headers): Promise<Actor> {
@@ -29,6 +30,7 @@ export async function approvedInstruction(user: Actor, id: string, permission="R
   const i=await db.careInstruction.findUnique({where:{id},include:{version:{include:{plan:true}},explanations:{where:{status:"APPROVED"}}}});
   if(!i) throw new HttpError(404,"NOT_FOUND","Instruction not found.");
   await permit(user,i.version.plan.patientId,permission);
+  if(user.role!=="CLINICIAN" && isSourcePageInstruction(i)) throw new HttpError(404,"NOT_FOUND","Instruction not found.");
   if(i.reviewState!=="APPROVED" || i.version.status!=="APPROVED" || i.version.plan.approvedVersionId!==i.versionId) throw new HttpError(404,"NOT_PUBLISHED","This instruction is not currently published.");
   return i;
 }

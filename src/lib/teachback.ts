@@ -1,4 +1,6 @@
 import { clinicalFields, comparisonSchema, clarificationRequired, type Finding, type InstructionForCheck, type Status, type ComparisonField } from "./contracts";
+import {approvedValueAliases,localizeClinicalValue} from "./medication-translation";
+import {languageCodes} from "./languages";
 const normalize = (v: string) => v.toLowerCase().replace(/[.,!?]/g, "").replace(/[०-९০-৯୦-୯౦-౯੦-੯௦-௯]/g,c=>String(c.charCodeAt(0)-[0x966,0x9e6,0xb66,0xc66,0xa66,0xbe6].find(n=>c.charCodeAt(0)>=n&&c.charCodeAt(0)<=n+9)!)).replace(/\s+/g, " ").trim();
 const phrases: Record<string, string[]> = {
   "one": ["one", "1", "एक","এক","ଏକ","ఒక","ਇੱਕ","ஒரு"], "tablet": ["tablet", "tablets","tab", "गोली","ট্যাবলেট","ଗୋଳି","మాత్ర","ਗੋਲੀ","மாத்திரை"],
@@ -7,6 +9,16 @@ const phrases: Record<string, string[]> = {
   "after food": ["after food", "after meals", "after eating", "खाने के बाद"],
   "before food": ["before food", "before meals", "खाने से पहले"]
 };
+for(const [key,values] of Object.entries(approvedValueAliases))phrases[key]=[...(phrases[key]||[key]),...values];
+phrases["three times daily"]=["three times daily","three times a day","3 times a day",...approvedValueAliases["three times daily"]];
+phrases["oral"]=["oral",...phrases["by mouth"]];
+const frequencyKeys=["once daily","twice daily","three times daily"];
+function aliasesFor(value:string){
+ if(/^(?:for\s+)?\d+\s+(days?|weeks?|months?)$/i.test(value.trim()))return languageCodes.map(language=>localizeClinicalValue(value,language));
+ const normalized=normalize(value).replace(/s$/,"");
+ const entry=Object.entries(phrases).find(([key,values])=>normalize(key)===normalized||values.some(alias=>normalize(alias).replace(/s$/,"")===normalized));
+ return entry?.[1]||[value];
+}
 function findPhrase(answer: string, candidates: string[]) {
   for (const phrase of candidates) {
     const index = normalize(answer).indexOf(normalize(phrase));
@@ -32,21 +44,22 @@ export function deterministicComparison(i: InstructionForCheck, answer: string):
   return checkedFields(i,answer).map(field => {
     if (i.sourceUnclear) return finish(i, field, null, "NEEDS_CLINICIAN_REVIEW");
     if(field==="sourcePassage")return finish(i,field,normalize(answer)===normalize(i.sourcePassage)?answer:null,normalize(answer)===normalize(i.sourcePassage)?"MATCH":"NEEDS_CLINICIAN_REVIEW");
-    if(/\b(not|never|skip|stop|don't|won't|cannot)\b|नहीं|নয়|নেই|ନାହିଁ|కాదు|ਨਹੀਂ|இல்லை/iu.test(answer))return finish(i,field,null,"UNCLEAR");
+    if(/\b(not|never|skip|stop|don't|won't|cannot)\b|नहीं|নয়|নেই|ନାହିଁ|కాదు|తీసుకోను|ਨਹੀਂ|இல்லை|மாட்டேன்/iu.test(answer))return finish(i,field,null,"UNCLEAR");
     const approved = i[field]!;
-    let stated = findPhrase(answer, phrases[normalize(approved)] || [approved]);
+    let stated = findPhrase(answer, aliasesFor(approved));
     if(field==="medicationName")stated=/Demo\s+Medicine\s+[A-Z]/i.exec(answer)?.[0] || stated;
-    if (field === "frequency") stated = findPhrase(answer, [...(phrases["once daily"]), ...(phrases["twice daily"]), "three times a day", "3 times a day", "three times daily"]) || stated;
-    if(field==="frequency"&&findPhrase(answer,phrases["once daily"])&&findPhrase(answer,phrases["twice daily"]))return finish(i,field,null,"UNCLEAR");
-    const quantities=[...answer.matchAll(/(?<![\p{L}\p{N}])(\d+(?:\.\d+)?|[०-९০-৯୦-୯౦-౯੦-੯௦-௯]+|one|two|three|half|एक|दो|तीन|এক|দুই|ਇੱਕ|ਦੋ|ஒரு|ஒன்று|இரண்டு|ఒక|రెండు|ଏକ|ଦୁଇ)\s*(tablets?|tabs?|capsules?|mg|g|mcg|ml|mL|गोली|ট্যাবলেট|ଗୋଳି|మాత్ర|ਗੋਲੀ|மாத்திரை)(?![\p{L}\p{N}])/giu)];
+    if (field === "frequency") stated = findPhrase(answer,frequencyKeys.flatMap(key=>phrases[key])) || stated;
+    if(field==="frequency"&&frequencyKeys.filter(key=>findPhrase(answer,phrases[key])).length>1)return finish(i,field,null,"UNCLEAR");
+    const quantities=[...answer.matchAll(/(?<![\p{L}\p{N}])(\d+(?:\.\d+)?|[०-९০-৯୦-୯౦-౯੦-੯௦-௯]+|one|two|three|half|एक|दो|तीन|এক|দুই|ਇੱਕ|ਦੋ|ஒரு|ஒன்று|இரண்டு|ఒక|రెండు|ଏକ|ଦୁଇ)\s*(tablets?|tabs?|capsules?|mg|g|mcg|ml|mL|गोली|टैबलेट|ট্যাবলেট|ଟାବଲେଟ୍|ଗୋଳି|మాత్ర|ਗੋਲੀ|மாத்திரை|कैप्सूल|ক্যাপসুল|କ୍ୟାପସୁଲ୍|క్యాప్సూల్|ਕੈਪਸੂਲ|காப்ஸ்யூல்)(?![\p{L}\p{N}])/giu)];
     const tabletUnit=(v:string)=>(phrases.tablet.some(p=>normalize(p)===normalize(v))||/^tabs?$/i.test(v));
     const quantity=quantities.find(q=>i.unit&&(normalize(q[2]).replace(/s$/,"")===normalize(i.unit).replace(/s$/,"")||tabletUnit(q[2])&&tabletUnit(i.unit)))||quantities[0];
     const sameUnit=quantities.filter(q=>quantity&&(normalize(q[2]).replace(/s$/,"")===normalize(quantity[2]).replace(/s$/,"")||tabletUnit(q[2])&&tabletUnit(quantity[2])));
     if(["dose","unit"].includes(field)&&new Set(sameUnit.map(q=>normalize(q[1]))).size>1)return finish(i,field,null,"UNCLEAR");
     if (field === "dose") stated = quantity?.[1] || stated;
     if (field === "unit") stated = quantity?.[2] || stated;
-    if (field === "timing") stated = findPhrase(answer, [...phrases["after food"], ...phrases["before food"]]) || stated;
-    if(field==="timing"&&findPhrase(answer,phrases["after food"])&&findPhrase(answer,phrases["before food"]))return finish(i,field,null,"UNCLEAR");
+    const timingKeys=["after food","before food","with food","at bedtime"];
+    if (field === "timing") stated = findPhrase(answer,timingKeys.flatMap(key=>phrases[key])) || stated;
+    if(field==="timing"&&timingKeys.filter(key=>findPhrase(answer,phrases[key])).length>1)return finish(i,field,null,"UNCLEAR");
     if (!stated) {
       const ambiguous = /\b(maybe|probably|sometimes|unsure|not sure|as needed|whenever)\b|शायद/iu.test(answer);
       return finish(i, field, null, ambiguous ? "UNCLEAR" : "INCOMPLETE");
@@ -54,8 +67,8 @@ export function deterministicComparison(i: InstructionForCheck, answer: string):
     const numeric:Record<string,number>={one:1,two:2,three:3,half:.5,"एक":1,"दो":2,"तीन":3,"এক":1,"দুই":2,"ਇੱਕ":1,"ਦੋ":2,"ஒரு":1,"ஒன்று":1,"இரண்டு":2,"ఒక":1,"రెండు":2,"ଏକ":1,"ଦୁଇ":2};
     const aNumber=numeric[normalize(approved)] ?? Number(normalize(approved));const sNumber=numeric[normalize(stated)] ?? Number(normalize(stated));
     const equal = field==="dose" && Number.isFinite(aNumber) && Number.isFinite(sNumber) ? aNumber===sNumber
-      : field==="unit" ? normalize(approved).replace(/s$/,"")===normalize(stated).replace(/s$/,"") || (phrases[normalize(approved)] || []).some(p=>normalize(p)===normalize(stated!))
-      : (phrases[normalize(approved)] || [approved]).some(p => normalize(p) === normalize(stated!));
+      : field==="unit" ? normalize(approved).replace(/s$/,"")===normalize(stated).replace(/s$/,"") || aliasesFor(approved).some(p=>normalize(p)===normalize(stated!))
+      : aliasesFor(approved).some(p => normalize(p) === normalize(stated!));
     if(equal && /\b(maybe|probably|sometimes|unsure|not sure|whenever)\b|शायद/iu.test(answer)) return finish(i,field,stated,"UNCLEAR");
     return finish(i, field, stated, equal ? "MATCH" : "MISMATCH");
   });

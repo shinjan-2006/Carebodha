@@ -1,0 +1,17 @@
+import {describe,it,expect} from "vitest";
+import {patientCareText} from "../src/lib/patient-care-text";
+import {deterministicComparison,overallStatus} from "../src/lib/teachback";
+import {localizeClinicalValue} from "../src/lib/medication-translation";
+import {languageCodes} from "../src/lib/languages";
+import {translationAudioNotice} from "../src/lib/translation-audio";
+const fixture={id:"fictional",versionId:"published-v1",kind:"MEDICATION",title:"Training Medicine 500 mg",medicationName:"Training Medicine 500 mg",dose:"1",unit:"tablet",frequency:"twice daily",timing:"after food",route:null,duration:null,sourceUnclear:false,sourcePassage:"PRIVATE ORIGINAL DOCUMENT TEXT",explanations:[{language:"en",status:"APPROVED",text:"Take 1 tablet twice daily after food."}]};
+const answers={en:"I will take 1 tablet twice a day after eating.",hi:"मैं खाने के बाद 1 गोली दिन में दो बार लूँगा।",bn:"আমি খাবারের পরে দিনে দুবার 1 ট্যাবলেট নেব।",or:"ମୁଁ ଖାଇବା ପରେ ଦିନକୁ ଦୁଇଥର 1 ଟାବଲେଟ୍ ନେବି।",te:"నేను ఆహారం తర్వాత రోజుకు రెండుసార్లు 1 మాత్ర తీసుకుంటాను.",pa:"ਮੈਂ ਖਾਣੇ ਤੋਂ ਬਾਅਦ ਦਿਨ ਵਿੱਚ ਦੋ ਵਾਰ 1 ਗੋਲੀ ਲਵਾਂਗਾ।",ta:"நான் உணவுக்குப் பிறகு தினமும் இரண்டு முறை 1 மாத்திரை எடுத்துக் கொள்வேன்."};
+describe("approved care in all seven languages",()=>{
+ for(const language of languageCodes){
+  it(`${language}: renders the approved medicine text without notices or original source`,()=>{const result=patientCareText({...fixture,explanations:[...fixture.explanations,{language,status:"APPROVED",text:translationAudioNotice(language)}]},language);expect(result.language).toBe(language);expect(result.text).not.toContain("PRIVATE ORIGINAL");expect(result.text).not.toContain("care team");expect(result.text).toContain("1");if(language!=="en")expect(result.text).toContain(localizeClinicalValue("twice daily",language));});
+  it(`${language}: automatically verifies a natural agreeing answer`,()=>{expect(overallStatus(deterministicComparison(fixture,answers[language]))).toBe("MATCH");});
+  it(`${language}: detects wrong dose, wrong frequency and missing details`,()=>{expect(overallStatus(deterministicComparison(fixture,answers[language].replace("1","2")))).toBe("MISMATCH");const incorrect=answers[language].replace(language==="en"?"twice a day":language==="bn"?"দিনে দুবার":localizeClinicalValue("twice daily",language),localizeClinicalValue("once daily",language));expect(overallStatus(deterministicComparison(fixture,incorrect))).toBe("MISMATCH");expect(overallStatus(deterministicComparison(fixture,`1 ${localizeClinicalValue("tablet",language)}`))).toBe("INCOMPLETE");});
+ }
+ it("does not omit an unknown warning or replace a clinician-reviewed translation",()=>{const withWarning={...fixture,explanations:[{language:"en",status:"APPROVED",text:"Take 1 tablet twice daily. Do not take this medicine if the clinician told you to stop."}]};expect(patientCareText(withWarning,"bn")).toMatchObject({text:withWarning.explanations[0].text,language:"en",fallback:true});expect(patientCareText({...fixture,explanations:[...fixture.explanations,{language:"bn",status:"APPROVED",text:"ক্লিনিশিয়ানের পর্যালোচিত নির্দেশ।"}]},"bn").text).toBe("ক্লিনিশিয়ানের পর্যালোচিত নির্দেশ।");});
+ it("uses only reviewed values when old explanations are notices",()=>{const result=patientCareText({...fixture,explanations:[{language:"bn",status:"APPROVED",text:translationAudioNotice("bn")}]},"bn");expect(result.text).toContain("Training Medicine 500 mg");expect(result.text).toContain("দিনে দুইবার");expect(result.text).not.toContain("PRIVATE ORIGINAL");});
+});

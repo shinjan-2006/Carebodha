@@ -27,6 +27,16 @@ const timeUnits:Record<string,Translation>={
  weeks:{hi:"सप्ताह",bn:"সপ্তাহ",or:"ସପ୍ତାହ",te:"వారాలు",pa:"ਹਫ਼ਤੇ",ta:"வாரங்கள்"},
  months:{hi:"महीने",bn:"মাস",or:"ମାସ",te:"నెలలు",pa:"ਮਹੀਨੇ",ta:"மாதங்கள்"}
 };
+export function localizeClinicalValue(value:string,language:Language){
+ if(language==="en")return value;
+ for(const [phrase,translations] of phrases)if(new RegExp(`^${phrase}$`,"i").test(value.trim()))return translations[language];
+ if(/^oral$/i.test(value.trim()))return phrases.find(([phrase])=>phrase==="by mouth")![1][language];
+ const period=/^(?:for\s+)?(\d+)\s+(days?|weeks?|months?)$/i.exec(value.trim());
+ if(period)return `${period[1]} ${timeUnits[period[2].toLowerCase().replace(/s?$/,"s")][language]}`;
+ return value;
+}
+export const approvedValueAliases:Record<string,string[]>=Object.fromEntries(phrases.map(([phrase,translations])=>[phrase.replace("s?",""),Object.values(translations)]));
+approvedValueAliases.oral=approvedValueAliases["by mouth"];
 export function medicationTranslationDraft(i:ExtractedInstruction,language:Language):string{
  if(language==="en")return i.sourcePassage;
  if(i.kind!=="MEDICATION"||i.sourceUnclear||!i.medicationName)return "";
