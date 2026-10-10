@@ -4,8 +4,17 @@ import {approvedAudioText,synthesizeCareAudio,careAudio} from "../src/lib/care-a
 import {approvedInstruction} from "../src/lib/security";
 import {languageCodes} from "../src/lib/languages";
 import {translateUi} from "../src/lib/ui-translations";
+import {translationAudioNotice} from "../src/lib/translation-audio";
+import {selectApprovedText} from "../src/lib/approved-text";
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();vi.clearAllMocks();});
 describe("authorized multilingual audio",()=>{
+ it("never reads stored translation notices or blank approved explanations",()=>{
+  for(const language of languageCodes){
+   const explanations=[{language,status:"APPROVED",text:translationAudioNotice(language)},{language:"en",status:"APPROVED",text:"Take 1 tablet twice daily."}];
+   expect(selectApprovedText(explanations,"Original instruction",language)).toMatchObject({text:"Take 1 tablet twice daily.",language:"en"});
+  }
+  expect(selectApprovedText([{language:"bn",status:"APPROVED",text:"A clinician-approved Bengali translation is not yet available. Please ask your care team."}],"Approved source","bn").text).toBe("Approved source");
+ });
  it("reads the approved English text when a reviewed translation is missing",()=>{
   const drafts=[{language:"bn",text:"Unreviewed Bengali",status:"DRAFT"}];
   for(const language of languageCodes.filter(l=>l!=="en")){const text=approvedAudioText(drafts,"English medicine instruction",language);expect(text).toBe("English medicine instruction");expect(text).not.toContain("Unreviewed");}

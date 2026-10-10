@@ -1,10 +1,10 @@
 import {z} from "zod";
 import {languageCodes,languageInfo,type Language} from "./languages";
 import {HttpError,approvedInstruction,type Actor} from "./security";
+import {selectApprovedText} from "./approved-text";
 
 export function approvedAudioText(explanations:{language:string;status:string;text:string}[],source:string,language:Language){
- const reviewed=explanations.find(e=>e.language===language&&e.status==="APPROVED"&&e.text.trim());
- return reviewed?.text || explanations.find(e=>e.language==="en"&&e.status==="APPROVED"&&e.text.trim())?.text || source;
+ return selectApprovedText(explanations,source,language).text;
 }
 export async function synthesizeCareAudio(text:string,language:Language){
  if(process.env.TTS_PROVIDER!=="sarvam"||!process.env.SARVAM_API_KEY)throw new HttpError(503,"AUDIO_NOT_CONFIGURED","Audio for this language needs the server speech service. Please read the text for now.");
@@ -23,7 +23,6 @@ export async function careAudio(user:Actor,body:unknown){
  // The client supplies identifiers, never arbitrary text or an unreviewed translation.
  const input=z.object({instructionId:z.string().min(1).max(100),language:z.enum(languageCodes)}).strict().parse(body);
  const instruction=await approvedInstruction(user,input.instructionId);
- const text=approvedAudioText(instruction.explanations,instruction.sourcePassage,input.language);
- const translated=instruction.explanations.some(e=>e.language===input.language&&e.status==="APPROVED"&&e.text.trim());
- return synthesizeCareAudio(text,translated?input.language:"en");
+ const approved=selectApprovedText(instruction.explanations,instruction.sourcePassage,input.language);
+ return synthesizeCareAudio(approved.text,approved.language);
 }
