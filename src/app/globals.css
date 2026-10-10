@@ -593,7 +593,14 @@ legend{font-size:14px;color:var(--muted);padding:0 8px}
 
 /* Editorial hierarchy; these primitives are reused on every application route. */
 .brand,.sidebar .brand{font-size:18px;font-weight:800;letter-spacing:-.03em;gap:8px;color:var(--text)}
-.brand-symbol{width:9px;height:9px;min-width:9px;background:#2a5bff;border:0;border-radius:50%}
+.brand-symbol{position:relative;overflow:hidden;display:block;width:40px;height:40px;min-width:40px;background:#fff;border:0;border-radius:9px}
+.brand-symbol img{position:absolute;width:74px;height:74px;max-width:none;left:-19px;top:-10px}
+.site-credit{padding:25px 24px;text-align:center;border-top:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;line-height:1.8;letter-spacing:.015em}
+.site-credit p{margin:0}.site-credit strong{font-weight:700}.site-credit span{display:block;color:var(--muted);font-size:12px}
+body:has(.app-shell) .site-credit{margin-left:251px}
+@media(max-width:1150px){body:has(.app-shell) .site-credit{margin-left:224px}}
+@media(max-width:900px){body:has(.app-shell) .site-credit{margin-left:206px}}
+@media(max-width:680px){body:has(.app-shell) .site-credit{margin-left:0}.site-credit{padding:22px 18px}.brand-symbol{width:36px;height:36px;min-width:36px}.brand-symbol img{left:-21px;top:-12px}}
 .skip-link{color:#fff}
 .button{font-size:15px;font-weight:600;min-height:48px;white-space:normal}
 .button.primary,.light-button{background:var(--text);color:var(--bg)}
