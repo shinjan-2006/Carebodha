@@ -1,4 +1,4 @@
-import {isSourcePageInstruction} from "./patient-instructions";
+import {isSourcePageInstruction,withApprovedReading} from "./patient-instructions";
 import { db, mode } from "./db";
 import { z } from "zod";
 import { randomBytes } from "node:crypto";
@@ -36,7 +36,7 @@ export async function workspace(user: Actor, patientId?: string) {
     user.role==="PATIENT" && selected ? db.familyInvitation.findMany({where:{patientId:selected},select:{id:true,email:true,permissions:true,expiresAt:true,acceptedAt:true,revokedAt:true},orderBy:{createdAt:"desc"},take:50}) : []
   ]);
   const phone=await db.user.findUnique({where:{id:user.id},select:{phoneNumber:true,phoneNumberVerified:true}});
-  return {user:{id:user.id,name:user.name,email:user.email,username:user.username,role:user.role,...phone},smsAvailable:smsConfigured(),phoneOtpAvailable:phoneOtpConfigured(),mode,storageDriver:process.env.STORAGE_DRIVER||"local",providerMode:process.env.AI_PROVIDER,patients,selectedPatientId:selected || null,plans:clinician?plans:plans.map(plan=>({...plan,versions:plan.versions.map(version=>({...version,instructions:version.instructions.filter(instruction=>!isSourcePageInstruction(instruction)).map(instruction=>({...instruction,sourcePassage:"",sourceLocation:null}))}))})),documents,attempts,requests,reminders,notifications,grants,invitations,familyPermissions};
+  return {user:{id:user.id,name:user.name,email:user.email,username:user.username,role:user.role,...phone},smsAvailable:smsConfigured(),phoneOtpAvailable:phoneOtpConfigured(),mode,storageDriver:process.env.STORAGE_DRIVER||"local",providerMode:process.env.AI_PROVIDER,patients,selectedPatientId:selected || null,plans:clinician?plans:plans.map(plan=>({...plan,versions:plan.versions.map(version=>({...version,instructions:version.instructions.filter(instruction=>!isSourcePageInstruction(instruction)).map(instruction=>({...withApprovedReading(instruction),sourcePassage:"",sourceLocation:null}))}))})),documents,attempts,requests,reminders,notifications,grants,invitations,familyPermissions};
 }
 async function draftVersion(user:Actor,id:string) {
   requireClinician(user);
