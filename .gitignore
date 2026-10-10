@@ -17,3 +17,4 @@ playwright-report/
 tsconfig.tsbuildinfo
 /.swc
 .workflow-data/
+.local-otp-postgres/

@@ -1,8 +1,27 @@
 # Phone sign-in and medicine reminders
 
-Password sign-in remains enabled. A patient first registers with email/password, then verifies their own E.164 phone number in **Language & access**. Subsequent sign-in can use a six-digit phone OTP. Codes expire after five minutes with three verification attempts; the existing authentication rate limits still apply. Patient sign-up cannot grant medical-expert access.
+With a configured phone OTP service, patient/family sign-in uses only a six-digit code sent to a registered, verified number. New patients enter their name and username and verify their phone before an account or patient profile is created. Share the username with the medical expert to assign care. Medical-expert accounts retain administrator-provisioned password access.
 
-To activate real SMS delivery, configure these **server-only** production environment variables, then redeploy:
+## Twilio Verify (OTP, including eligible free trials)
+
+Set these server-only environment variables locally and in Vercel Production, then redeploy:
+
+```
+PHONE_OTP_PROVIDER=twilio-verify
+TWILIO_ACCOUNT_SID=<account SID>
+TWILIO_AUTH_TOKEN=<secret>
+TWILIO_VERIFY_SERVICE_SID=<Verify service SID>
+```
+
+Use Vercel's **Secret** type for the auth token. Keep the local `.env` ignored by Git. Twilio generates and checks the OTP; CareBodha never displays a code or provides a fixed-code bypass. Challenges expire locally after five minutes, permit three verification attempts, and are consumed once. Sending is rate-limited to two requests per minute per IP. Verification is also rate-limited. Expired, exhausted, consumed or provider-rejected codes never create a session.
+
+An existing patient who registered with email/password must verify their phone in **Language & access while still signed in** before using phone login. Do not create a second account to migrate an existing patient. If phone OTP is not configured, legacy password access remains available; once configured, patient password endpoints are rejected server-side. Expert password endpoints remain available.
+
+Twilio's trial currently supports a limited number of verified tester phones and expires after 30 days. It is a testing service, not unrestricted public patient registration. Check the current [Twilio trial rules](https://www.twilio.com/docs/usage/trials) before enabling it. No paid upgrade is performed by the application.
+
+## Medicine reminder SMS (separate capability)
+
+Verify does **not** send custom medicine reminders. To activate those, configure a messaging service that supports custom messages and the destination country's requirements:
 
 ```
 SMS_PROVIDER=twilio
@@ -11,10 +30,12 @@ TWILIO_AUTH_TOKEN=<secret>
 TWILIO_MESSAGING_SERVICE_SID=<messaging service SID>
 ```
 
-Keep secrets in Vercel Secret environment variables and a gitignored local `.env`. Configure the messaging service to support the destination country and the provider's sender/template requirements. There are no fixed, developer-visible or bypass OTP codes. Without a configured provider, phone features show their unavailable state and password sign-in continues working.
+Until then, in-app reminders continue working and SMS-reminder controls explain why they are unavailable. Patients explicitly opt into SMS after phone verification. Messages can contain the approved medicine name. Users choose reminder times; CareBodha does not infer dosing times or change prescriptions. One-time and daily reminders for 7 or 30 days are available, with at most 90 scheduled reminders per request.
 
-Patients explicitly opt into SMS after phone verification. Reminder messages can contain the approved medicine name, and the consent label explains this. Users choose reminder times; the app does not infer dosing times or change a prescription. One-time and daily reminders for 7 or 30 days are available, with a maximum of 90 scheduled reminders per request. Multiple daily dosing times can be scheduled as separate batches. In-app notifications remain available.
+On Vercel, each reminder starts the durable reminder workflow. Locally, run `node --import tsx scripts/worker.ts`. Before delivery, the worker validates the current published plan and checks the verified number and consent. A database claim prevents duplicate SMS during retries. Ambiguous delivery failures are not retried automatically. `SENT` means provider acceptance, not confirmed handset delivery.
 
-On Vercel, each reminder starts the existing durable reminder workflow. Locally, run `node --import tsx scripts/worker.ts`. The worker validates that the instruction still belongs to the currently published version, creates the in-app notification, and sends SMS only to the patient's verified number while consent remains enabled. A database claim prevents duplicate SMS during retries. Ambiguous delivery failures are not retried automatically. `SENT` means the provider accepted the message, not confirmed handset delivery.
+Automatic teach-back compares answers against published instructions. Recognized quantities, units and frequencies can match or mismatch automatically. Negation, contradictory answers and unclear source instructions are never marked understood; unsupported freeform comparisons remain eligible for clinician review. Translations remain clinician-reviewed: when none is published, Listen reads the approved English instruction in English.
 
-Automatic teach-back compares explicit answers against the published instruction. Recognized quantities, units and frequencies can match or mismatch automatically. Negation, contradictory answers and unclear source instructions are never marked understood; unsupported freeform comparisons remain eligible for clinician review. Medical translations remain clinician-reviewed: when none is published, Listen reads the existing English instruction in English.
+## Tests
+
+`pnpm test` covers the SMS and Verify transports with mocks. To run the real auth-handler lifecycle against a **local isolated database** (mocked SMS only), migrate a database named `carebodha_normal_test`, set `PHONE_AUTH_TEST_DATABASE_URL` to its localhost URL, and run `pnpm exec vitest run tests/phone-auth.integration.test.ts`. This test never contacts Twilio and does not establish handset delivery.

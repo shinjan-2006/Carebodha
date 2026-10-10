@@ -10,6 +10,7 @@ import { storePrivate, readPrivate, validateFile } from "./storage";
 import {languageCodes,type Language} from "./languages";
 import {authOrigin} from "./auth-origin";
 import {smsConfigured} from "./sms";
+import {phoneOtpConfigured} from "./phone-otp";
 import {extractSourceFields,sourceExtractionMethod,isUntouchedLegacyExtraction} from "./source-extraction";
 export {assignPatient} from "./expert-patients";
 const audit = (actorId:string,action:string,resourceId:string) => ({actorId,action,resourceId});
@@ -34,7 +35,7 @@ export async function workspace(user: Actor, patientId?: string) {
     user.role==="PATIENT" && selected ? db.familyInvitation.findMany({where:{patientId:selected},select:{id:true,email:true,permissions:true,expiresAt:true,acceptedAt:true,revokedAt:true},orderBy:{createdAt:"desc"},take:50}) : []
   ]);
   const phone=await db.user.findUnique({where:{id:user.id},select:{phoneNumber:true,phoneNumberVerified:true}});
-  return {user:{id:user.id,name:user.name,email:user.email,username:user.username,role:user.role,...phone},smsAvailable:smsConfigured(),mode,storageDriver:process.env.STORAGE_DRIVER||"local",providerMode:process.env.AI_PROVIDER,patients,selectedPatientId:selected || null,plans,documents,attempts,requests,reminders,notifications,grants,invitations,familyPermissions};
+  return {user:{id:user.id,name:user.name,email:user.email,username:user.username,role:user.role,...phone},smsAvailable:smsConfigured(),phoneOtpAvailable:phoneOtpConfigured(),mode,storageDriver:process.env.STORAGE_DRIVER||"local",providerMode:process.env.AI_PROVIDER,patients,selectedPatientId:selected || null,plans,documents,attempts,requests,reminders,notifications,grants,invitations,familyPermissions};
 }
 async function draftVersion(user:Actor,id:string) {
   requireClinician(user);
