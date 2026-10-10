@@ -1,4 +1,5 @@
 import {audioUi} from "./audio-ui";
+import {workspaceUi} from "./workspace-ui";
 import catalog from "./ui-catalog.json";
 import {uiText,type Language} from "./languages";
 import {manualUi} from "./ui-manual";
@@ -20,7 +21,7 @@ export function translateUi(text:string,language:Language){
  const aliases:Record<string,string>={MEDICATION:"Medication",CARE:"Care",WARNING:"Warning",CONTACT:"Contact","FOLLOW UP":"Follow-up",READ:"Read"};
  const key=aliases[original] || original;
  const common=commonKeys[key];
- const translated=audioUi[language]?.[key] || voiceUi[language]?.[key] || manualUi[language]?.[key] || overrides[language]?.[key] || (common?uiText[language][common]:undefined) || translations[language]?.[key.toLowerCase()];
+ const translated=workspaceUi[language]?.[key] || audioUi[language]?.[key] || voiceUi[language]?.[key] || manualUi[language]?.[key] || overrides[language]?.[key] || (common?uiText[language][common]:undefined) || translations[language]?.[key.toLowerCase()];
  if(!translated)return text;
  return `${/^\s/.test(text)?" ":""}${translated}${/\s$/.test(text)?" ":""}`;
 }

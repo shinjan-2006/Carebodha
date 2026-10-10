@@ -44,11 +44,14 @@ async function handler(req:Request, ctx:{params:Promise<{path:string[]}>}) {
     else if(m==="POST" && p[0]==="grants" && p[2]==="revoke") data=await service.revoke(u,p[1],"grant");
     else if(m==="POST" && p[0]==="clarifications" && !p[1]) data=await service.ask(u,await body());
     else if(m==="PATCH" && p[0]==="clarifications" && p[1]) data=await service.respond(u,p[1],await body());
+    else if(m==="POST" && p[0]==="reminders" && p[1]==="batch" && !p[2]) data=await service.reminderBatch(u,await body());
     else if(m==="POST" && p[0]==="reminders" && !p[1]) data=await service.createReminder(u,await body());
     else if(m==="PATCH" && p[0]==="reminders" && p[1]) data=await service.changeReminder(u,p[1],await body());
+    else if(m==="PATCH" && p[0]==="phone-preferences" && !p[1]) data=await service.phonePreferences(u,await body());
     else if(m==="PATCH" && p[0]==="settings") data=await service.settings(u,await body());
     else if(m==="PATCH" && p[0]==="notifications" && p[1]) data=await service.markRead(u,p[1]);
     else throw new HttpError(404,"ENDPOINT_NOT_FOUND","Endpoint not found.");
+    if(process.env.VERCEL==="1" && m==="POST" && p[0]==="reminders" && p[1]==="batch" && data){for(const r of (data as {reminders:{id:string}[]}).reminders)await start(reminderWorkflow,[r.id]);}
     if(process.env.VERCEL==="1" && m==="POST" && data && typeof data==="object" && "id" in data && typeof data.id==="string"){
       if(p[0]==="reminders" && !p[1])await start(reminderWorkflow,[data.id]);
       if(p[0]==="documents" && p[1]!=="upload-authorization"){const job=await db.processingJob.findFirst({where:{documentId:data.id},select:{id:true}});if(job)await start(documentJobWorkflow,[job.id]);}

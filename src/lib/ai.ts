@@ -56,8 +56,7 @@ export async function extract(text: string): Promise<{instructions: ExtractedIns
   return {instructions:parsed.instructions.map(i=>sourceGrounded(i,text)), method:"live AI"};
 }
 export async function compare(i: InstructionForCheck, answer: string) {
-  if(process.env.AI_PROVIDER==="manual" && process.env.APP_MODE!=="demo")return {
-    findings:checkedFields(i,answer).map(field=>({instructionId:i.id,planVersionId:i.versionId,fieldName:field,approvedValue:i[field]!,statedValue:answer,supportingQuote:answer,status:"NEEDS_CLINICIAN_REVIEW" as const,explanation:"Your answer has been saved for your care team to review. Automatic comparison is not enabled; no agreement or mismatch has been inferred.",clarification:i.sourcePassage})),method:"care-team review"};
+  if(process.env.AI_PROVIDER==="manual" && process.env.APP_MODE!=="demo")return {findings:deterministicComparison(i,answer),method:"source-grounded automatic comparison"};
   if(isDemo()) {
     if(!i.medicationName?.startsWith("Demo Medicine"))throw new ProviderFailure("DEMO_COMPARISON_UNSUPPORTED");
     const supported = i.medicationName?.startsWith("Demo Medicine") && /one|two|1|2|एक|दो|maybe|unsure|not sure/i.test(answer);

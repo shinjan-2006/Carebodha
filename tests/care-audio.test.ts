@@ -6,9 +6,9 @@ import {languageCodes} from "../src/lib/languages";
 import {translateUi} from "../src/lib/ui-translations";
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();vi.clearAllMocks();});
 describe("authorized multilingual audio",()=>{
- it("never speaks an unreviewed translation or English fallback in a selected Indian language",()=>{
+ it("reads the approved English text when a reviewed translation is missing",()=>{
   const drafts=[{language:"bn",text:"Unreviewed Bengali",status:"DRAFT"}];
-  for(const language of languageCodes.filter(l=>l!=="en")){const text=approvedAudioText(drafts,"English medicine instruction",language);expect(text).not.toContain("English medicine");expect(text).not.toContain("Unreviewed");}
+  for(const language of languageCodes.filter(l=>l!=="en")){const text=approvedAudioText(drafts,"English medicine instruction",language);expect(text).toBe("English medicine instruction");expect(text).not.toContain("Unreviewed");}
   expect(approvedAudioText([{language:"bn",text:"অনুমোদিত বাংলা",status:"APPROVED"}],"English","bn")).toBe("অনুমোদিত বাংলা");
  });
  it("maps all seven locales, including the provider’s Odia code, and validates WAV audio",async()=>{

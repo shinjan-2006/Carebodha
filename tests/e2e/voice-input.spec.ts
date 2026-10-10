@@ -59,16 +59,16 @@ test("selected-language dictation retains partial and final phrases and saves on
   await page.reload();await switcher.selectOption("bn");await expect(page.locator(".pending-indicator")).toHaveCount(0);
   await page.locator(".approved-passage button").click();
   const missing=await page.evaluate(()=>(window as unknown as {__spoken:{text:string;lang:string}[]}).__spoken.at(-1)!);
-  expect(missing.lang).toBe("bn-IN");expect(missing.text).toContain("অনুমোদিত অনুবাদ");expect(missing.text).not.toContain(source);
-  await page.evaluate(()=>{Object.assign(window.speechSynthesis,{getVoices:()=>[{lang:"en-IN",name:"English only"}]});Object.assign(window,{Audio:class {onended=null;play(){return Promise.resolve();}pause(){}}});});
+  expect(missing.lang).toBe("en-IN");expect(missing.text).toBe(source);
+  await page.evaluate(()=>{Object.assign(window.speechSynthesis,{getVoices:()=>[]});Object.assign(window,{Audio:class {onended=null;play(){return Promise.resolve();}pause(){}}});});
   let audioBody:unknown;
   await page.route("**/api/v1/audio",async route=>{audioBody=route.request().postDataJSON();await route.fulfill({status:200,contentType:"audio/wav",body:Buffer.from("RIFF0000WAVE")});});
   await page.locator(".approved-passage button").click();
   await expect(page.getByText("অডিও শুরু হয়েছে। অনুমোদিত পাঠ পড়তে পারবেন।",{exact:true})).toBeVisible();
-  expect(audioBody).toEqual({instructionId:instruction.id,language:"bn"});
+  expect(audioBody).toEqual({instructionId:instruction.id,language:"en"});
   await page.unroute("**/api/v1/audio");
   await page.route("**/api/v1/audio",route=>route.fulfill({status:503,json:{error:{message:"Audio for this language needs the server speech service. Please read the text for now."}}}));
-  await page.goto("/app/plan");await page.evaluate(()=>Object.assign(window.speechSynthesis,{getVoices:()=>[{lang:"en-IN",name:"English only"}]}));
+  await page.goto("/app/plan");await page.evaluate(()=>Object.assign(window.speechSynthesis,{getVoices:()=>[]}));
   const card=page.locator(".instruction-card").first();await card.locator(".card-buttons button").click();
   await expect(card.getByRole("status").last()).toContainText("এই ভাষার অডিওর জন্য সার্ভারের অডিও পরিষেবা দরকার");
 

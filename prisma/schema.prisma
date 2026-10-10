@@ -11,6 +11,8 @@ model User {
   email String @unique
   username String? @unique
   emailVerified Boolean @default(false)
+  phoneNumber String? @unique
+  phoneNumberVerified Boolean @default(false)
   image String?
   role String @default("PATIENT")
   dataMode String @default("normal")
@@ -77,6 +79,7 @@ model PatientProfile {
   language String @default("en")
   timezone String @default("Asia/Kolkata")
   largeText Boolean @default(false)
+  smsReminders Boolean @default(false)
   assignments ClinicianPatientAssignment[]
   plans CarePlan[]
   documents Document[]
@@ -284,6 +287,9 @@ model Reminder {
   timezone String
   status String @default("SCHEDULED")
   notifiedAt DateTime?
+  smsRequested Boolean @default(false)
+  smsStatus String @default("NOT_REQUESTED")
+  smsProviderId String?
   reportedCompletedAt DateTime?
   reportedById String?
   reportedBy User? @relation("ReportedReminders",fields:[reportedById],references:[id])

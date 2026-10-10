@@ -9,10 +9,11 @@ import { overallStatus } from "./teachback";
 import { storePrivate, readPrivate, validateFile } from "./storage";
 import {languageCodes,type Language} from "./languages";
 import {authOrigin} from "./auth-origin";
+import {smsConfigured} from "./sms";
 import {extractSourceFields,sourceExtractionMethod,isUntouchedLegacyExtraction} from "./source-extraction";
 export {assignPatient} from "./expert-patients";
 const audit = (actorId:string,action:string,resourceId:string) => ({actorId,action,resourceId});
-const profileSelect={id:true,user:{select:{id:true,name:true,email:true,username:true}},language:true,timezone:true,largeText:true};
+const profileSelect={id:true,user:{select:{id:true,name:true,email:true,username:true}},language:true,timezone:true,largeText:true,smsReminders:true};
 export async function workspace(user: Actor, patientId?: string) {
   const patients = await db.patientProfile.findMany({where:user.role==="CLINICIAN" ? {assignments:{some:{clinicianId:user.id}},user:{dataMode:mode}}
     : user.role==="FAMILY" ? {grants:{some:{familyId:user.id,revokedAt:null,permissions:{has:"READ"}}},user:{dataMode:mode}} : {userId:user.id},select:profileSelect,orderBy:{user:{createdAt:"asc"}},take:50});
@@ -32,7 +33,8 @@ export async function workspace(user: Actor, patientId?: string) {
     user.role==="PATIENT" && selected ? db.familyAccessGrant.findMany({where:{patientId:selected},include:{family:{select:{name:true,email:true}}}}) : [],
     user.role==="PATIENT" && selected ? db.familyInvitation.findMany({where:{patientId:selected},select:{id:true,email:true,permissions:true,expiresAt:true,acceptedAt:true,revokedAt:true},orderBy:{createdAt:"desc"},take:50}) : []
   ]);
-  return {user:{id:user.id,name:user.name,email:user.email,username:user.username,role:user.role},mode,storageDriver:process.env.STORAGE_DRIVER||"local",providerMode:process.env.AI_PROVIDER,patients,selectedPatientId:selected || null,plans,documents,attempts,requests,reminders,notifications,grants,invitations,familyPermissions};
+  const phone=await db.user.findUnique({where:{id:user.id},select:{phoneNumber:true,phoneNumberVerified:true}});
+  return {user:{id:user.id,name:user.name,email:user.email,username:user.username,role:user.role,...phone},smsAvailable:smsConfigured(),mode,storageDriver:process.env.STORAGE_DRIVER||"local",providerMode:process.env.AI_PROVIDER,patients,selectedPatientId:selected || null,plans,documents,attempts,requests,reminders,notifications,grants,invitations,familyPermissions};
 }
 async function draftVersion(user:Actor,id:string) {
   requireClinician(user);
@@ -198,7 +200,7 @@ export async function submitTeachBack(user:Actor,body:unknown) {
       if(!g || g.revokedAt || !g.permissions.includes("TEACH_BACK")) throw new HttpError(403,"FORBIDDEN","Family access has been revoked.");
     }
     const attempt=await tx.teachBackAttempt.create({data:{...input,versionId:i.versionId,answeredById:user.id,method:result.method,status:overallStatus(result.findings),findings:{create:result.findings}},include:{findings:true}});
-    if(result.method==="care-team review") {
+    if(result.method==="care-team review" || result.findings.some(f=>f.status==="NEEDS_CLINICIAN_REVIEW")) {
       const request=await tx.clarificationRequest.create({data:{instructionId:i.id,requestedById:user.id,question:`Please review my teach-back: ${input.transcript}`}});
       const assignments=await tx.clinicianPatientAssignment.findMany({where:{patientId:i.version.plan.patientId}});
       for(const a of assignments)await tx.notification.create({data:{userId:a.clinicianId,dedupeKey:`teachback-review:${attempt.id}:${a.clinicianId}`,title:"Teach-back awaiting review",body:"A patient or caregiver submitted an answer. Open the clarification queue to review it."}});
@@ -255,10 +257,33 @@ export async function respond(user:Actor,id:string,body:unknown) {
 }
 export async function createReminder(user:Actor,body:unknown) {
   const input=z.object({instructionId:z.string(),scheduledAt:z.iso.datetime(),timezone:z.string().max(100)}).strict().parse(body);
-  await approvedInstruction(user,input.instructionId,"REMINDERS");
+  const instruction=await approvedInstruction(user,input.instructionId,"REMINDERS");
+  const patient=await db.patientProfile.findUnique({where:{id:instruction.version.plan.patientId},include:{user:{select:{phoneNumber:true,phoneNumberVerified:true}}}});
+  const smsRequested=!!patient?.smsReminders&&!!patient.user.phoneNumberVerified&&instruction.kind==="MEDICATION";
+  if(smsRequested&&!smsConfigured())throw new HttpError(503,"SMS_NOT_CONFIGURED","Phone reminders are not configured yet. Turn off SMS in Language & access to use in-app reminders.");
   try{new Intl.DateTimeFormat("en",{timeZone:input.timezone});}catch{throw new HttpError(422,"INVALID_TIMEZONE","Choose a valid timezone.");}
   const date=new Date(input.scheduledAt); if(date<new Date(Date.now()-5000) || date>new Date(Date.now()+365*86400000)) throw new HttpError(422,"INVALID_REMINDER_TIME","Choose a future time within one year.");
-  return db.$transaction(async tx=>{const r=await tx.reminder.create({data:{...input,scheduledAt:date,createdById:user.id}});await tx.auditEvent.create({data:audit(user.id,"REMINDER_SCHEDULED",r.id)});return r;});
+  return db.$transaction(async tx=>{const r=await tx.reminder.create({data:{...input,scheduledAt:date,createdById:user.id,smsRequested,smsStatus:smsRequested?"PENDING":"NOT_REQUESTED"}});await tx.auditEvent.create({data:audit(user.id,"REMINDER_SCHEDULED",r.id)});return r;});
+}
+export async function phonePreferences(user:Actor,body:unknown){
+ const input=z.object({smsReminders:z.boolean()}).strict().parse(body);
+ if(user.role!=="PATIENT")throw new HttpError(403,"FORBIDDEN","Patient settings required.");
+ const phone=await db.user.findUniqueOrThrow({where:{id:user.id},select:{phoneNumberVerified:true}});
+ if(input.smsReminders&&!phone.phoneNumberVerified)throw new HttpError(422,"PHONE_NOT_VERIFIED","Verify your phone number first.");
+ if(input.smsReminders&&!smsConfigured())throw new HttpError(503,"SMS_NOT_CONFIGURED","Phone messaging is not configured yet. Your in-app reminders remain available.");
+ return db.patientProfile.update({where:{userId:user.id},data:input});
+}
+export async function reminderBatch(user:Actor,body:unknown){
+ const input=z.object({instructionIds:z.array(z.string()).min(1).max(20),scheduledAt:z.array(z.iso.datetime()).min(1).max(30),timezone:z.string().max(100)}).strict().parse(body);
+ const ids=[...new Set(input.instructionIds)],dates=[...new Set(input.scheduledAt)];
+ if(ids.length*dates.length>90)throw new HttpError(422,"TOO_MANY_REMINDERS","Schedule up to 90 reminders at a time.");
+ try{new Intl.DateTimeFormat("en",{timeZone:input.timezone});}catch{throw new HttpError(422,"INVALID_TIMEZONE","Choose a valid timezone.");}
+ for(const date of dates)if(new Date(date)<new Date(Date.now()-5000)||new Date(date)>new Date(Date.now()+365*86400000))throw new HttpError(422,"INVALID_REMINDER_TIME","Choose future reminder times within one year.");
+ const instructions=await Promise.all(ids.map(id=>approvedInstruction(user,id,"REMINDERS")));
+ const patients=new Set(instructions.map(i=>i.version.plan.patientId));if(patients.size!==1)throw new HttpError(422,"INVALID_PATIENT","Schedule one patient's reminders at a time.");
+ const patient=await db.patientProfile.findUniqueOrThrow({where:{id:instructions[0].version.plan.patientId},include:{user:{select:{phoneNumberVerified:true}}}});
+ const sms=patient.smsReminders&&patient.user.phoneNumberVerified;if(sms&&!smsConfigured())throw new HttpError(503,"SMS_NOT_CONFIGURED","Phone messaging is not configured yet. Turn off SMS to use in-app reminders.");
+ return db.$transaction(async tx=>{const reminders=[];for(const i of instructions){if((await tx.carePlan.findUnique({where:{id:i.version.plan.id}}))?.approvedVersionId!==i.versionId)throw new HttpError(409,"PLAN_CHANGED","The approved plan changed. Refresh and try again.");for(const date of dates)reminders.push(await tx.reminder.create({data:{instructionId:i.id,createdById:user.id,scheduledAt:new Date(date),timezone:input.timezone,smsRequested:sms&&i.kind==="MEDICATION",smsStatus:sms&&i.kind==="MEDICATION"?"PENDING":"NOT_REQUESTED"}}));}await tx.auditEvent.create({data:audit(user.id,"REMINDER_BATCH_SCHEDULED",reminders[0].id)});return {reminders};});
 }
 export async function changeReminder(user:Actor,id:string,body:unknown) {
   const {action}=z.object({action:z.enum(["COMPLETE","CANCEL"])}).strict().parse(body);

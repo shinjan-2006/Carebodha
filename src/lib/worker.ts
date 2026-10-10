@@ -1,3 +1,4 @@
+import {deliverReminderSms} from "./reminder-sms";
 import { db, mode } from "./db";
 import { randomUUID } from "node:crypto";
 import { readPrivate } from "./storage";
@@ -78,6 +79,7 @@ export async function runJob(job: ProcessingJob) {
         }
         await tx.processingJob.update({where:{id:job.id},data:{status:"SUCCEEDED",leaseUntil:null,leaseToken:null}});
       });
+      await deliverReminderSms(id);
     } else throw new ProviderFailure("UNKNOWN_JOB_KIND");
   } catch(error) {
     const code=error instanceof ProviderFailure?error.code:"PROCESSING_FAILED";
