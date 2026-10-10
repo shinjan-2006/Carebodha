@@ -28,11 +28,12 @@ test("all seven languages: approved plan, Listen, automatic teach-back and sourc
   }
   for(const language of ["bn","or","te","pa"]){
    await page.goto(`/app/teachback?instructionId=${instruction.id}`);await page.getByRole("combobox",{name:"Language / भाषा"}).selectOption(language);
-   await page.route("**/api/v1/audio",async route=>{expect(route.request().postDataJSON().language).toBe(language);await route.fulfill({contentType:"audio/wav",body:await readFile(`.local-browser-media/language-audio-${language}.wav`)});});
+   await page.route("**/api/v1/audio",async route=>{expect(route.request().postDataJSON().language).toBe(language);await new Promise(resolve=>setTimeout(resolve,1500));await route.fulfill({contentType:"audio/wav",body:await readFile(`.local-browser-media/language-audio-${language}.wav`)});});
    await page.evaluate(()=>{Object.assign(window,{SpeechSynthesisUtterance:class{constructor(public text:string){}}});Object.assign(window.speechSynthesis,{resume(){},cancel(){},getVoices(){return ["bn","or","te","pa"].map(l=>({lang:`${l}-IN`,name:l}));},speak(u:{onerror:()=>void}){u.onerror?.();}});});
-   for(let replay=0;replay<2;replay++){await page.locator(".approved-passage button").click();await expect(page.locator(".voice-toolbar ~ [role=status]")).toContainText(/অডিও শুরু|ଅଡିଓ ଆରମ୍ଭ|ఆడియో ప్రారంభ|ਆਡੀਓ ਸ਼ੁਰੂ/);}
+   for(let replay=0;replay<2;replay++){await page.locator(".approved-passage button").click();await expect(page.locator(".approved-passage button")).toBeDisabled();await expect(page.locator(".voice-toolbar ~ [role=status]")).toContainText(/অডিও শুরু|ଅଡିଓ ଆରମ୍ଭ|ఆడియో ప్రారంభ|ਆਡੀਓ ਸ਼ੁਰੂ/);}
    await page.unroute("**/api/v1/audio");
   }
  }finally{await api.dispose();await db.$disconnect();}
 });
+
 

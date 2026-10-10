@@ -1,9 +1,10 @@
 import {languageInfo} from "./languages";
 
 let speechRequest=0;
+let pendingPlayback:{key:string;promise:Promise<boolean|null>}|undefined;
 let activeUtterance:SpeechSynthesisUtterance|undefined;
 let audioAbort:AbortController|undefined,audioElement:HTMLAudioElement|undefined,audioUrl:string|undefined;
-export function cancelSpeech(){speechRequest++;audioAbort?.abort();audioAbort=undefined;audioElement?.pause();audioElement=undefined;if(audioUrl){URL.revokeObjectURL(audioUrl);audioUrl=undefined;}if(typeof window!=="undefined")window.speechSynthesis?.cancel();}
+export function cancelSpeech(){speechRequest++;pendingPlayback=undefined;audioAbort?.abort();audioAbort=undefined;audioElement?.pause();audioElement=undefined;if(audioUrl){URL.revokeObjectURL(audioUrl);audioUrl=undefined;}if(typeof window!=="undefined")window.speechSynthesis?.cancel();}
 /** Never substitute an English voice for a different language. */
 export function selectSpeechVoice(voices:SpeechSynthesisVoice[],language:string){
  const locale=languageInfo(language).locale.toLowerCase();
@@ -39,15 +40,28 @@ export async function speak(text:string,language="en"):Promise<boolean|null>{
 }
 
 /** Server fallback uses only the authorized, published instruction fetched by its ID. */
-export async function speakCare(instructionId:string,text:string,language:string):Promise<boolean|null>{
- const native=await speak(text,language);if(native!==false)return native;
+export function speakCare(instructionId:string,text:string,language:string):Promise<boolean|null>{
+ const key=JSON.stringify([instructionId,text,language]);
+ if(pendingPlayback?.key===key)return pendingPlayback.promise;
+ const promise=playCare(instructionId,text,language);
+ pendingPlayback={key,promise};
+ void promise.finally(()=>{if(pendingPlayback?.promise===promise)pendingPlayback=undefined;}).catch(()=>{});
+ return promise;
+}
+async function playCare(instructionId:string,text:string,language:string):Promise<boolean|null>{
+ // Initialize the SAME media element during the click, before voice/network awaits.
+ const audio=new Audio("data:audio/wav;base64,UklGRsQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+ audio.volume=0;
+ const ready=audio.play().then(()=>{audio.pause();audio.currentTime=0;audio.volume=1;},()=>{audio.volume=1;});
+ const native=await speak(text,language);if(native!==false){await ready;audio.pause();return native;}
+ await ready;
  const request=speechRequest;const controller=new AbortController();audioAbort=controller;
  try{
   const response=await fetch("/api/v1/audio",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},signal:controller.signal,body:JSON.stringify({instructionId,language})});
   if(request!==speechRequest)return null;
   if(!response.ok){const payload=await response.json();throw new Error(payload.error?.message || "Audio is temporarily unavailable. Please try again or read the approved text.");}
   const blob=await response.blob();if(request!==speechRequest)return null;
-  const url=URL.createObjectURL(blob),audio=new Audio(url);audioUrl=url;audioElement=audio;
+  const url=URL.createObjectURL(blob);audio.src=url;audioUrl=url;audioElement=audio;
   audio.onended=()=>{URL.revokeObjectURL(url);if(audioUrl===url)audioUrl=undefined;};
   await audio.play();return request===speechRequest?true:null;
  }catch(error){if(controller.signal.aborted||request!==speechRequest)return null;throw error;}
@@ -69,4 +83,5 @@ export const voiceErrors:Record<string,string>={
  "no-speech":"No speech was detected. Check your microphone and try again.",
  "language-not-supported":"Voice input is not supported for this language in your browser. Type your answer instead."
 };
+
 
