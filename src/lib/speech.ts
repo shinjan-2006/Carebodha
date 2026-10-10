@@ -40,20 +40,21 @@ export async function speak(text:string,language="en"):Promise<boolean|null>{
 }
 
 /** Server fallback uses only the authorized, published instruction fetched by its ID. */
-export function speakCare(instructionId:string,text:string,language:string):Promise<boolean|null>{
- const key=JSON.stringify([instructionId,text,language]);
+export function speakCare(instructionId:string,text:string,language:string,serverOnly=false):Promise<boolean|null>{
+ const key=JSON.stringify([instructionId,text,language,serverOnly]);
  if(pendingPlayback?.key===key)return pendingPlayback.promise;
- const promise=playCare(instructionId,text,language);
+ const promise=playCare(instructionId,text,language,serverOnly);
  pendingPlayback={key,promise};
  void promise.finally(()=>{if(pendingPlayback?.promise===promise)pendingPlayback=undefined;}).catch(()=>{});
  return promise;
 }
-async function playCare(instructionId:string,text:string,language:string):Promise<boolean|null>{
+async function playCare(instructionId:string,text:string,language:string,serverOnly=false):Promise<boolean|null>{
  // Initialize the SAME media element during the click, before voice/network awaits.
  const audio=new Audio("data:audio/wav;base64,UklGRsQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
  audio.volume=0;
  const ready=audio.play().then(()=>{audio.pause();audio.currentTime=0;audio.volume=1;},()=>{audio.volume=1;});
- const native=await speak(text,language);if(native!==false){await ready;audio.pause();return native;}
+ if(serverOnly)cancelSpeech();
+ const native=serverOnly?false:await speak(text,language);if(native!==false){await ready;audio.pause();return native;}
  await ready;
  const request=speechRequest;const controller=new AbortController();audioAbort=controller;
  try{
@@ -83,5 +84,6 @@ export const voiceErrors:Record<string,string>={
  "no-speech":"No speech was detected. Check your microphone and try again.",
  "language-not-supported":"Voice input is not supported for this language in your browser. Type your answer instead."
 };
+
 
 

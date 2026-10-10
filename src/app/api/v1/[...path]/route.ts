@@ -1,3 +1,4 @@
+import {careTranslation} from "@/lib/care-translation";
 import {careAudio} from "@/lib/care-audio";
 import { NextResponse } from "next/server";
 import { actor, sameOrigin, limit, HttpError, approvedInstruction } from "@/lib/security";
@@ -22,6 +23,7 @@ async function handler(req:Request, ctx:{params:Promise<{path:string[]}>}) {
     if(m==="POST" && p[0]==="audio" && !p[1]){const audio=await careAudio(u,await body());return new Response(new Uint8Array(audio),{headers:{"Content-Type":"audio/wav","Cache-Control":"private, no-store"}});}
     let data:unknown;
     if(m==="GET" && p[0]==="workspace") data=await service.workspace(u,new URL(req.url).searchParams.get("patientId") || undefined);
+    else if(m==="POST" && p[0]==="translation" && !p[1]) data=await careTranslation(u,await body());
     else if(m==="POST" && p[0]==="patients" && p[1]==="assign" && !p[2]) data=await service.assignPatient(u,await body());
     else if(m==="GET" && p[0]==="instructions" && p[1]) data=await approvedInstruction(u,p[1]);
     else if(m==="GET" && p[0]==="teachback" && p[1]==="history") data=await service.history(u,new URL(req.url).searchParams);
@@ -60,3 +62,4 @@ async function handler(req:Request, ctx:{params:Promise<{path:string[]}>}) {
   } catch(e) {const r=service.safeError(e);return NextResponse.json({error:r.error},{status:r.status,headers:{"Cache-Control":"no-store"}});}
 }
 export {handler as GET,handler as POST,handler as PATCH};
+

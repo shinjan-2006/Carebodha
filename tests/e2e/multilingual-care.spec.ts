@@ -37,3 +37,26 @@ test("all seven languages: approved plan, Listen, automatic teach-back and sourc
 });
 
 
+test("every card translates and requests selected-language audio, including follow-ups and advice",async({page})=>{
+ if(new URL(process.env.DATABASE_URL!).pathname!=="/carebodha_normal_test")throw Error("Use the isolated test database.");
+ const db=new PrismaClient(),origin=process.env.BETTER_AUTH_URL!;
+ const api=await request.newContext({baseURL:origin,extraHTTPHeaders:{Origin:origin}});
+ try{
+  expect((await api.post('/api/auth/sign-up/email',{data:{email:`cards-${Date.now()}@example.test`,password:'Card-fixture-2026!',name:'Fictional Card Test'}})).status()).toBe(200);
+  const workspace=(await(await api.get('/api/v1/workspace')).json()).data;
+  const fixtures=[{kind:'MEDICATION',title:'Second medicine',medicationName:'Fictional Medicine 10 mg',sourcePassage:'Fictional Medicine 10 mg: take 1 tablet before breakfast. Do not double the dose.'},{kind:'FOLLOW_UP',title:'Follow-up review',medicationName:null,sourcePassage:'Return in 3 months with fresh reports.'},{kind:'CARE',title:'Walking advice',medicationName:null,sourcePassage:'Walk for 30 minutes and stop if dizzy.'}];
+  const plan=await db.carePlan.create({data:{patientId:workspace.selectedPatientId,title:'Fictional card test',dataMode:'normal',versions:{create:{number:1,status:'APPROVED',approvedAt:new Date(),method:'isolated fixture',instructions:{create:fixtures.map(f=>({...f,sourceUnclear:false,reviewState:'APPROVED'}))}}}},include:{versions:{include:{instructions:true}}}});
+  const version=plan.versions[0];await db.carePlan.update({where:{id:plan.id},data:{approvedVersionId:version.id}});
+  await page.context().addCookies((await api.storageState()).cookies);
+  const translations:Record<string,string>={hi:'अनुवादित निर्देश',bn:'অনুবাদিত নির্দেশ',or:'ଅନୁବାଦିତ ନିର୍ଦ୍ଦେଶ',te:'అనువదించిన సూచన',pa:'ਅਨੁਵਾਦਿਤ ਹਦਾਇਤ',ta:'மொழிபெயர்க்கப்பட்ட வழிமுறை'};
+  let active='bn';const plays:string[]=[];
+  await page.route('**/api/v1/translation',async route=>{const input=route.request().postDataJSON();expect(translations[input.language]).toBeTruthy();await route.fulfill({json:{data:{text:translations[input.language],language:input.language,fallback:false,localized:true,machineTranslated:true}}});});
+  await page.route('**/api/v1/audio',async route=>{const input=route.request().postDataJSON();expect(input.language).toBe(active);plays.push(input.instructionId);await route.fulfill({contentType:'audio/wav',body:await readFile('.local-browser-media/language-audio-bn.wav')});});
+  for(const language of Object.keys(translations)){
+   active=language;await page.goto('/app/plan');await page.getByRole('combobox',{name:'Language / भाषा'}).selectOption(language);
+   for(const instruction of version.instructions){const card=page.locator('.instruction-card').filter({has:page.getByRole('heading',{name:instruction.title,exact:true})});const before=plays.length;await card.locator('.card-buttons button').click();await expect.poll(()=>plays.length).toBe(before+1);expect(plays.at(-1)).toBe(instruction.id);await expect(card.locator('.card-buttons button')).toBeEnabled();await expect(card.locator('.patient-instruction')).toHaveText(translations[language]);}
+   for(const instruction of version.instructions){await page.goto(`/app/teachback?instructionId=${instruction.id}`);await expect(page.locator('.approved-passage p')).toHaveText(translations[language]);await page.evaluate(()=>{Object.assign(window.speechSynthesis,{getVoices(){return [];},cancel(){},resume(){}});});const before=plays.length;await page.locator('.approved-passage button').click();await expect.poll(()=>plays.length).toBe(before+1);await expect(page.locator('.approved-passage button')).toBeEnabled();}
+  }
+ }finally{await api.dispose();await db.$disconnect();}
+});
+
