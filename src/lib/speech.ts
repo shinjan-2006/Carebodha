@@ -1,7 +1,8 @@
 import {languageInfo} from "./languages";
 
 let speechRequest=0;
-export function cancelSpeech(){speechRequest++;if(typeof window!=="undefined")window.speechSynthesis?.cancel();}
+let audioAbort:AbortController|undefined,audioElement:HTMLAudioElement|undefined,audioUrl:string|undefined;
+export function cancelSpeech(){speechRequest++;audioAbort?.abort();audioAbort=undefined;audioElement?.pause();audioElement=undefined;if(audioUrl){URL.revokeObjectURL(audioUrl);audioUrl=undefined;}if(typeof window!=="undefined")window.speechSynthesis?.cancel();}
 /** Never substitute an English voice for a different language. */
 export function selectSpeechVoice(voices:SpeechSynthesisVoice[],language:string){
  const locale=languageInfo(language).locale.toLowerCase();
@@ -24,6 +25,22 @@ export async function speak(text:string,language="en"):Promise<boolean|null>{
  if(!available)return false;
  const utterance=new SpeechSynthesisUtterance(text);utterance.lang=languageInfo(language).locale;utterance.voice=available;utterance.rate=.86;
  synth.speak(utterance);return true;
+}
+
+/** Server fallback uses only the authorized, published instruction fetched by its ID. */
+export async function speakCare(instructionId:string,text:string,language:string):Promise<boolean|null>{
+ const native=await speak(text,language);if(native!==false)return native;
+ const request=speechRequest;const controller=new AbortController();audioAbort=controller;
+ try{
+  const response=await fetch("/api/v1/audio",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},signal:controller.signal,body:JSON.stringify({instructionId,language})});
+  if(request!==speechRequest)return null;
+  if(!response.ok){const payload=await response.json();throw new Error(payload.error?.message || "Audio is temporarily unavailable. Please try again or read the approved text.");}
+  const blob=await response.blob();if(request!==speechRequest)return null;
+  const url=URL.createObjectURL(blob),audio=new Audio(url);audioUrl=url;audioElement=audio;
+  audio.onended=()=>{URL.revokeObjectURL(url);if(audioUrl===url)audioUrl=undefined;};
+  await audio.play();return request===speechRequest?true:null;
+ }catch(error){if(controller.signal.aborted||request!==speechRequest)return null;throw error;}
+ finally{if(audioAbort===controller)audioAbort=undefined;}
 }
 
 export type RecognitionResult={isFinal:boolean;0:{transcript:string}};

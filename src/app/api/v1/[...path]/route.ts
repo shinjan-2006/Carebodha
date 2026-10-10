@@ -1,3 +1,4 @@
+import {careAudio} from "@/lib/care-audio";
 import { NextResponse } from "next/server";
 import { actor, sameOrigin, limit, HttpError, approvedInstruction } from "@/lib/security";
 import * as service from "@/lib/services";
@@ -18,6 +19,7 @@ async function handler(req:Request, ctx:{params:Promise<{path:string[]}>}) {
     const {path:p}=await ctx.params; const u=await actor(req.headers); const m=req.method;
     if(m!=="GET") {sameOrigin(req);await limit(u,p[0]);}
     const body=async(optional=false)=>{const data=await bytes(req,120000);if(optional&&!data.length)return {};try{return JSON.parse(new TextDecoder().decode(data));}catch{throw new HttpError(422,"INVALID_JSON","Provide a valid JSON request.");}};
+    if(m==="POST" && p[0]==="audio" && !p[1]){const audio=await careAudio(u,await body());return new Response(new Uint8Array(audio),{headers:{"Content-Type":"audio/wav","Cache-Control":"private, no-store"}});}
     let data:unknown;
     if(m==="GET" && p[0]==="workspace") data=await service.workspace(u,new URL(req.url).searchParams.get("patientId") || undefined);
     else if(m==="POST" && p[0]==="patients" && p[1]==="assign" && !p[2]) data=await service.assignPatient(u,await body());
