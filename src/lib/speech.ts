@@ -1,6 +1,7 @@
 import {languageInfo} from "./languages";
 
 let speechRequest=0;
+let activeUtterance:SpeechSynthesisUtterance|undefined;
 let audioAbort:AbortController|undefined,audioElement:HTMLAudioElement|undefined,audioUrl:string|undefined;
 export function cancelSpeech(){speechRequest++;audioAbort?.abort();audioAbort=undefined;audioElement?.pause();audioElement=undefined;if(audioUrl){URL.revokeObjectURL(audioUrl);audioUrl=undefined;}if(typeof window!=="undefined")window.speechSynthesis?.cancel();}
 /** Never substitute an English voice for a different language. */
@@ -24,7 +25,17 @@ export async function speak(text:string,language="en"):Promise<boolean|null>{
  if(request!==speechRequest)return null;
  if(!available)return false;
  const utterance=new SpeechSynthesisUtterance(text);utterance.lang=languageInfo(language).locale;utterance.voice=available;utterance.rate=.86;
- synth.speak(utterance);return true;
+ // A listed voice can still be unavailable. Only report actual playback start.
+ activeUtterance=utterance;
+ return await new Promise<boolean|null>(resolve=>{
+  let settled=false;
+  const done=(played:boolean)=>{if(settled)return;settled=true;clearTimeout(timer);resolve(request===speechRequest?played:null);};
+  const timer=setTimeout(()=>{if(request===speechRequest)synth.cancel();done(false);},3000);
+  utterance.onstart=()=>done(true);
+  utterance.onerror=()=>done(false);
+  utterance.onend=()=>{if(activeUtterance===utterance)activeUtterance=undefined;done(true);};
+  try{synth.resume();synth.speak(utterance);}catch{done(false);}
+ });
 }
 
 /** Server fallback uses only the authorized, published instruction fetched by its ID. */
@@ -58,3 +69,4 @@ export const voiceErrors:Record<string,string>={
  "no-speech":"No speech was detected. Check your microphone and try again.",
  "language-not-supported":"Voice input is not supported for this language in your browser. Type your answer instead."
 };
+

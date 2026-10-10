@@ -1,3 +1,4 @@
+import {readFile} from "node:fs/promises";
 import {test,expect,request} from "@playwright/test";
 import {PrismaClient} from "@prisma/client";
 const expectedText={en:"Take 1 tablet twice daily after food.",hi:"लें 1 गोली दिन में दो बार खाने के बाद.",bn:"নিন 1 ট্যাবলেট দিনে দুইবার খাবারের পরে.",or:"ନିଅନ୍ତୁ 1 ଟାବଲେଟ୍ ଦିନକୁ ଦୁଇଥର ଖାଇବା ପରେ.",te:"తీసుకోండి 1 మాత్ర రోజుకు రెండుసార్లు ఆహారం తర్వాత.",pa:"ਲਵੋ 1 ਗੋਲੀ ਦਿਨ ਵਿੱਚ ਦੋ ਵਾਰ ਖਾਣੇ ਤੋਂ ਬਾਅਦ.",ta:"எடுத்துக் கொள்ளுங்கள் 1 மாத்திரை தினமும் இரண்டு முறை உணவுக்குப் பிறகு."};
@@ -19,11 +20,19 @@ test("all seven languages: approved plan, Listen, automatic teach-back and sourc
   for(const language of languageCodes){
    await page.goto('/app/plan');await page.getByRole('combobox',{name:'Language / भाषा'}).selectOption(language);await expect(page.locator('.pending-indicator')).toHaveCount(0);
    const text=expectedText[language];await expect(page.locator('.patient-instruction')).toHaveText(text);expect(await page.locator('main').innerText()).not.toContain('PRIVATE ORIGINAL SOURCE');expect(await page.getByText('View original source',{exact:true}).count()).toBe(0);
-   await page.evaluate(()=>{Object.assign(window,{SpeechSynthesisUtterance:class{lang='';voice=null;rate=1;constructor(public text:string){}}});Object.assign(window.speechSynthesis,{cancel(){},getVoices(){return ['en','hi','bn','or','te','pa','ta'].map(l=>({lang:`${l}-IN`,name:l}));},speak(u:{text:string;lang:string}){Object.assign(window,{__spoken:{text:u.text,lang:u.lang}});}});});
+   await page.evaluate(()=>{Object.assign(window,{SpeechSynthesisUtterance:class{lang='';voice=null;rate=1;constructor(public text:string){}}});Object.assign(window.speechSynthesis,{cancel(){},resume(){},getVoices(){return ['en','hi','bn','or','te','pa','ta'].map(l=>({lang:`${l}-IN`,name:l}));},speak(u:{text:string;lang:string;onstart:()=>void}){Object.assign(window,{__spoken:{text:u.text,lang:u.lang}});u.onstart?.();}});});
    await page.locator('.instruction-card .card-buttons button').first().click();await expect.poll(()=>page.evaluate(()=>(window as unknown as {__spoken:{text:string;lang:string}}).__spoken)).toEqual({text,lang:languageInfo(language).locale});
    await page.goto(`/app/teachback?instructionId=${instruction.id}`);await expect(page.getByText(text,{exact:true})).toBeVisible();await page.locator('#teachback-answer').fill(answers[language]);await page.locator('form').filter({has:page.locator('#teachback-answer')}).locator('button.primary').last().click();await expect(page.locator('.result-panel > .status.green')).toBeVisible();await expect(page.locator('.result-panel')).not.toContainText('MISMATCH');await expect(page.locator('.result-panel .finding')).toHaveCount(4);
    const attempts=(await (await api.get('/api/v1/workspace')).json()).data.attempts;expect(attempts[0].status).toBe('MATCH');expect(attempts[0].method).toBe('source-grounded automatic comparison');
    await page.screenshot({path:`.local-browser-media/verified-teachback-${language}.png`,fullPage:true});
   }
+  for(const language of ["bn","or","te","pa"]){
+   await page.goto(`/app/teachback?instructionId=${instruction.id}`);await page.getByRole("combobox",{name:"Language / भाषा"}).selectOption(language);
+   await page.route("**/api/v1/audio",async route=>{expect(route.request().postDataJSON().language).toBe(language);await route.fulfill({contentType:"audio/wav",body:await readFile(`.local-browser-media/language-audio-${language}.wav`)});});
+   await page.evaluate(()=>{Object.assign(window,{SpeechSynthesisUtterance:class{constructor(public text:string){}}});Object.assign(window.speechSynthesis,{resume(){},cancel(){},getVoices(){return ["bn","or","te","pa"].map(l=>({lang:`${l}-IN`,name:l}));},speak(u:{onerror:()=>void}){u.onerror?.();}});});
+   for(let replay=0;replay<2;replay++){await page.locator(".approved-passage button").click();await expect(page.locator(".voice-toolbar ~ [role=status]")).toContainText(/অডিও শুরু|ଅଡିଓ ଆରମ୍ଭ|ఆడియో ప్రారంభ|ਆਡੀਓ ਸ਼ੁਰੂ/);}
+   await page.unroute("**/api/v1/audio");
+  }
  }finally{await api.dispose();await db.$disconnect();}
 });
+
